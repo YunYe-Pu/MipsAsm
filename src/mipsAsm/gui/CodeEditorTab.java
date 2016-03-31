@@ -14,7 +14,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextArea;
 
-public class CodeEditor extends Tab
+public class CodeEditorTab extends Tab
 {
 	public File file;
 	
@@ -29,7 +29,7 @@ public class CodeEditor extends Tab
 	 * Create a tab from a source code file.
 	 * @param file The source code file, or null if to create an empty document.
 	 */
-	public CodeEditor(File file, EventHandler<Event> onTabChange)
+	public CodeEditorTab(File file, EventHandler<Event> onTabChange)
 	{
 		this.textArea = new TextArea();
 		this.file = file;
@@ -55,13 +55,14 @@ public class CodeEditor extends Tab
 			if(e.getCode().isFunctionKey())
 				this.textArea.getParent().fireEvent(e);
 		});
+		this.textArea.fontProperty().bind(GUIMain.instance.editorFont());
 	}
 	
 	/**
 	 * Create a tab from disassembled code. The file field of this instance will be set to null.
 	 * @param initContent The disassembled code.
 	 */
-	public CodeEditor(String initContent, String title, EventHandler<Event> onTabChange)
+	public CodeEditorTab(String initContent, String title, EventHandler<Event> onTabChange)
 	{
 		this.file = null;
 //		this.lastSavedContent = "";
@@ -75,6 +76,11 @@ public class CodeEditor extends Tab
 		this.setOnClosed(onTabChange);
 		this.setOnSelectionChanged(onTabChange);
 		this.onTabChange = onTabChange;
+		this.textArea.setOnKeyPressed(e -> {
+			if(e.getCode().isFunctionKey())
+				this.textArea.getParent().fireEvent(e);
+		});
+		this.textArea.fontProperty().bind(GUIMain.instance.editorFont());
 	}
 	
 	private void _save()

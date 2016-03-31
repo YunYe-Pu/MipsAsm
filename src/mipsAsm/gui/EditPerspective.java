@@ -59,6 +59,7 @@ public class EditPerspective extends BorderPane
 		this.codeEditors.setTabClosingPolicy(TabClosingPolicy.ALL_TABS);
 		this.console = new TextArea();
 		this.console.setEditable(false);
+		this.console.fontProperty().bind(GUIMain.instance.editorFont());
 		this.consoleBuffer = new ByteArrayOutputStream();
 		this.assembler = new Assembler(new PrintStream(this.consoleBuffer));
 		Pane p1 = new Pane(this.codeEditors, this.console);
@@ -69,6 +70,7 @@ public class EditPerspective extends BorderPane
 		this.console.prefWidthProperty().bind(p1.widthProperty());
 		this.console.setLayoutX(0);
 		this.console.layoutYProperty().bind(p1.heightProperty().multiply(0.8f));
+		
 		
 		GUIMain.instance.endianess().addListener((e, oldVal, newVal) -> this.assembler.setEndianess(newVal));
 		GUIMain.instance.endianess().addListener((e, oldVal, newVal) -> this.menuItems[3][0].setText(newVal? "Endian:big": "Endian:little"));
@@ -91,7 +93,6 @@ public class EditPerspective extends BorderPane
 		this.menuItems[0][8] = MenuHelper.item("Quit", e -> GUIMain.instance.closeWindow(), "Q", KeyCombination.SHORTCUT_DOWN);
 		this.menus[0] = MenuHelper.menu("File", this.menuItems[0], "F");
 		
-		//The single F3 key shortcut somehow doesn't work when focusing on a text area, so use Ctrl+F3 as an alternative.
 		this.menuItems[1] = new MenuItem[4];
 		this.menuItems[1][0] = MenuHelper.item("Assemble current source", e -> this.onAssembleSingle(true), KeyCode.F3);
 		this.menuItems[1][1] = MenuHelper.item("Assemble all source", e -> this.onAssembleAll(true), KeyCode.F4);
@@ -167,7 +168,7 @@ public class EditPerspective extends BorderPane
 	
 	protected void onNewSource()
 	{
-		this.codeEditors.getTabs().add(new CodeEditor(null, e -> this.onEditorTabChange()));
+		this.codeEditors.getTabs().add(new CodeEditorTab(null, e -> this.onEditorTabChange()));
 		this.codeEditors.getSelectionModel().selectLast();
 		this.onEditorTabChange();
 		this.console.clear();
@@ -179,7 +180,7 @@ public class EditPerspective extends BorderPane
 		if(list == null) return false;
 		if(list.isEmpty()) return false;
 		for(File f : list)
-			this.codeEditors.getTabs().add(new CodeEditor(f, e -> this.onEditorTabChange()));
+			this.codeEditors.getTabs().add(new CodeEditorTab(f, e -> this.onEditorTabChange()));
 		this.codeEditors.getSelectionModel().selectLast();
 		this.onEditorTabChange();
 		this.console.clear();
@@ -188,30 +189,30 @@ public class EditPerspective extends BorderPane
 	
 	protected boolean onSave()
 	{
-		return ((CodeEditor)this.codeEditors.getSelectionModel().getSelectedItem()).save();	
+		return ((CodeEditorTab)this.codeEditors.getSelectionModel().getSelectedItem()).save();	
 	}
 	
 	protected boolean onSaveAs()
 	{
-		return ((CodeEditor)this.codeEditors.getSelectionModel().getSelectedItem()).saveAs();
+		return ((CodeEditorTab)this.codeEditors.getSelectionModel().getSelectedItem()).saveAs();
 	}
 
 	protected boolean onSaveAll()
 	{
 		for(Tab t : this.codeEditors.getTabs())
-			if(!((CodeEditor)t).save()) return false;
+			if(!((CodeEditorTab)t).save()) return false;
 		return true;
 	}
 	
 	protected boolean onReload()
 	{
-		return ((CodeEditor)this.codeEditors.getSelectionModel().getSelectedItem()).reload();
+		return ((CodeEditorTab)this.codeEditors.getSelectionModel().getSelectedItem()).reload();
 	}
 	
 	protected void onReloadAll()
 	{
 		for(Tab t : this.codeEditors.getTabs())
-			((CodeEditor)t).reload();
+			((CodeEditorTab)t).reload();
 	}
 	
 	protected void onEditorTabChange()
@@ -236,21 +237,21 @@ public class EditPerspective extends BorderPane
 			boolean noSource = true;
 			for(Tab t : this.codeEditors.getTabs())
 			{
-				if(((CodeEditor)t).file != null)
+				if(((CodeEditorTab)t).file != null)
 				{
 					noSource = false;
 					break;
 				}
 			}
 			this.menuItems[0][6].setDisable(noSource);
-			this.menuItems[0][5].setDisable(((CodeEditor)this.codeEditors.getSelectionModel().getSelectedItem()).file == null);
+			this.menuItems[0][5].setDisable(((CodeEditorTab)this.codeEditors.getSelectionModel().getSelectedItem()).file == null);
 			GUIMain.instance.setTitle("MIPS Assembler IDE - " + this.codeEditors.getSelectionModel().getSelectedItem().getText());
 		}
 	}
 	
 	protected BitStream onAssembleSingle(boolean save)
 	{
-		CodeEditor e = (CodeEditor)this.codeEditors.getSelectionModel().getSelectedItem();
+		CodeEditorTab e = (CodeEditorTab)this.codeEditors.getSelectionModel().getSelectedItem();
 		if(e.save())
 		{
 			File[] input = new File[1];
@@ -268,7 +269,7 @@ public class EditPerspective extends BorderPane
 	{
 		for(Tab t : this.codeEditors.getTabs())
 		{
-			if(((CodeEditor)t).hasContentChanged())
+			if(((CodeEditorTab)t).hasContentChanged())
 			{
 				Optional<ButtonType> result = this.assemblePrompt1.showAndWait();
 				if(result.isPresent() && result.get() == ButtonType.YES)
@@ -284,7 +285,7 @@ public class EditPerspective extends BorderPane
 		}
 		File[] input = new File[this.codeEditors.getTabs().size()];
 		for(int i = 0; i < input.length; i++)
-			input[i] = ((CodeEditor)this.codeEditors.getTabs().get(i)).file;
+			input[i] = ((CodeEditorTab)this.codeEditors.getTabs().get(i)).file;
 		BitStream result = this.assemble(input);
 		if(result != null && save)
 			this.promptSaveAsmResult(result);
@@ -302,7 +303,7 @@ public class EditPerspective extends BorderPane
 			return false;
 		}
 		StringBuilder str = Disassembler.disassemble(data);
-		this.codeEditors.getTabs().add(new CodeEditor(str.toString(), "Disassembled", e -> this.onEditorTabChange()));
+		this.codeEditors.getTabs().add(new CodeEditorTab(str.toString(), "Disassembled", e -> this.onEditorTabChange()));
 		this.codeEditors.getSelectionModel().selectLast();
 		this.onEditorTabChange();
 		return true;
@@ -338,7 +339,7 @@ public class EditPerspective extends BorderPane
 	{
 		for(Tab t : this.codeEditors.getTabs())
 		{
-			if(((CodeEditor)t).hasContentChanged())
+			if(((CodeEditorTab)t).hasContentChanged())
 			{
 				Optional<ButtonType> result = this.assemblePrompt1.showAndWait();
 				if(result.isPresent())

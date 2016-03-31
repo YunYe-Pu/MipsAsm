@@ -3,7 +3,6 @@ package mipsAsm.gui;
 import javafx.geometry.Orientation;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.text.Font;
 import mipsAsm.simulator.util.Memory;
 
 public class MemoryEditPane extends BorderPane
@@ -37,7 +36,7 @@ public class MemoryEditPane extends BorderPane
 	{
 		public MemoryEditGrid()
 		{
-			super(9, 9, 1, 0, 75, 25, Font.font("Courier New"));
+			super(9, 9, 1, 0, 80, 25);
 		}
 
 		@Override

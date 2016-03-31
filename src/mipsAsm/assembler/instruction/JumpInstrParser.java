@@ -12,7 +12,7 @@ import mipsAsm.assembler.operand.OpRegister;
 import mipsAsm.assembler.operand.Operand;
 import mipsAsm.assembler.util.AsmWarning;
 import mipsAsm.assembler.util.AsmWarningHandler;
-import mipsAsm.assembler.util.InstrFmt;
+import mipsAsm.assembler.util.InstructionFmt;
 import mipsAsm.assembler.util.LinkType;
 
 public enum JumpInstrParser implements InstructionParser
@@ -39,10 +39,10 @@ public enum JumpInstrParser implements InstructionParser
 		{
 			AsmWarning w = new AsmWarning("Deprecated operand", "Providing an immediate for operand 1 is deprecated as it might be incorrect.");
 			warningHandler.handleWarning(w);
-			instrList.add(InstrFmt.J.newInstance(data[0], operands.clone(), null, warningHandler));
+			instrList.add(InstructionFmt.J.newInstance(data[0], operands.clone(), null, warningHandler));
 		}
 		else if(operands[0] instanceof OpLabel)
-			instrList.add(InstrFmt.J.newInstance(data[0], operands.clone(), LinkType.ABSOLUTE_WORD, warningHandler));
+			instrList.add(InstructionFmt.J.newInstance(data[0], operands.clone(), LinkType.ABSOLUTE_WORD, warningHandler));
 		else if(operands[0] instanceof OpRegister)
 		{
 			Operand[] ops = new Operand[5];
@@ -51,7 +51,7 @@ public enum JumpInstrParser implements InstructionParser
 			ops[2] = new OpConstant(data[2]);
 			ops[3] = new OpConstant(data[3]);
 			ops[4] = new OpConstant(data[4]);
-			instrList.add(InstrFmt.R.newInstance(0, ops, null, warningHandler));
+			instrList.add(InstructionFmt.R.newInstance(0, ops, null, warningHandler));
 		}
 		else
 			throw new OpTypeMismatchError(0,Operand.getTypeName(operands[0]), "register, immediate, or label");

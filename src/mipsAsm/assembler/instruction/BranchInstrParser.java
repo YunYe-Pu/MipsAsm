@@ -12,7 +12,7 @@ import mipsAsm.assembler.operand.OpRegister;
 import mipsAsm.assembler.operand.Operand;
 import mipsAsm.assembler.util.AsmWarning;
 import mipsAsm.assembler.util.AsmWarningHandler;
-import mipsAsm.assembler.util.InstrFmt;
+import mipsAsm.assembler.util.InstructionFmt;
 import mipsAsm.assembler.util.LinkType;
 
 /**
@@ -42,13 +42,13 @@ public enum BranchInstrParser implements InstructionParser
 	BNEL    (2, 0x15, -1, -2, -3),
 	;
 	
-	private final InstrFmt instrFormat;
+	private final InstructionFmt instrFormat;
 	private final int regCount;
 	private final LinkType linkType;
 	private final int opCode;
 	private final int[] fields;
 
-	private BranchInstrParser(InstrFmt instrFormat, int regCount, LinkType linkType, int opCode, int... fields)
+	private BranchInstrParser(InstructionFmt instrFormat, int regCount, LinkType linkType, int opCode, int... fields)
 	{
 		this.instrFormat = instrFormat;
 		this.regCount = regCount;
@@ -59,7 +59,7 @@ public enum BranchInstrParser implements InstructionParser
 	
 	private BranchInstrParser(int regCount, int opCode, int... fields)
 	{
-		this(InstrFmt.I, regCount, LinkType.RELATIVE_WORD, opCode, fields);
+		this(InstructionFmt.I, regCount, LinkType.RELATIVE_WORD, opCode, fields);
 	}
 	
 	@Override

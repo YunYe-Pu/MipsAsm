@@ -16,20 +16,27 @@ public class OpImmediate extends Operand
 	
 	public OpImmediate(String token) throws AsmError
 	{
-		if(token.matches("0x[0-9a-fA-F]+"))//hex positive
-			this.value = Integer.parseInt(token.substring(2), 16);
-		else if(token.matches("-0x[0-9a-fA-F]+"))//hex negative
-			this.value = -Integer.parseInt(token.substring(3), 16);
-		else if(token.matches("0[0-7]+"))//octal positive
-			this.value = Integer.parseInt(token.substring(1), 8);
-		else if(token.matches("-0[0-7]+"))//octal negative
-			this.value = -Integer.parseInt(token.substring(2), 8);
-		else if(token.matches("-?[1-9]\\d*"))//decimal; the first digit should not be 0 except for zero.
-			this.value = Integer.parseInt(token);
-		else if(token.matches("-?0"))
-			this.value = 0;
-		else
+		try
+		{
+			if(token.matches("0x[0-9a-fA-F]+"))//hex positive
+				this.value = Integer.parseUnsignedInt(token.substring(2), 16);
+			else if(token.matches("-0x[0-9a-fA-F]+"))//hex negative
+				this.value = -Integer.parseUnsignedInt(token.substring(3), 16);
+			else if(token.matches("0[0-7]+"))//octal positive
+				this.value = Integer.parseUnsignedInt(token.substring(1), 8);
+			else if(token.matches("-0[0-7]+"))//octal negative
+				this.value = -Integer.parseUnsignedInt(token.substring(2), 8);
+			else if(token.matches("-?[1-9]\\d*"))//decimal; the first digit should not be 0 except for zero.
+				this.value = Integer.parseInt(token);
+			else if(token.matches("-?0"))
+				this.value = 0;
+			else
+				throw new AsmError("Incorrect number format", "Number \"" + token + "\" is in wrong format.");
+		}
+		catch(NumberFormatException e)
+		{
 			throw new AsmError("Incorrect number format", "Number \"" + token + "\" is in wrong format.");
+		}
 	}
 	
 	@Override

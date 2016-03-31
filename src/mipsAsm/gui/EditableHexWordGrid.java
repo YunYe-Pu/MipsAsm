@@ -8,7 +8,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
-import javafx.scene.text.Font;
 
 public abstract class EditableHexWordGrid extends GridPane
 {
@@ -18,7 +17,7 @@ public abstract class EditableHexWordGrid extends GridPane
 	protected int currModify = -1;
 	protected String prevText = null;
 	
-	public EditableHexWordGrid(int rows, int columns, int editableRow, int editableCol, int cellWidth, int cellHeight, Font font)
+	public EditableHexWordGrid(int rows, int columns, int editableRow, int editableCol, int cellWidth, int cellHeight)
 	{
 		super();
 		int cnt = rows * columns;
@@ -37,7 +36,7 @@ public abstract class EditableHexWordGrid extends GridPane
 			}
 			this.labels[i].setMinSize(cellWidth, cellHeight);
 			this.labels[i].setAlignment(Pos.CENTER);
-			this.labels[i].setFont(font);
+			this.labels[i].fontProperty().bind(GUIMain.instance.editorFont());
 			this.add(this.labels[i], i % columns, i / columns);
 		}
 
@@ -45,7 +44,7 @@ public abstract class EditableHexWordGrid extends GridPane
 		this.editText.setPrefSize(cellWidth, cellHeight);
 		this.editText.setVisible(false);
 		this.editText.setOnKeyPressed(e -> this.onTextKeyPressed(e));
-		this.editText.setFont(font);
+		this.editText.fontProperty().bind(GUIMain.instance.editorFont());
 		
 		this.drawHeader();
 		this.redraw();

@@ -5,8 +5,11 @@ import java.util.List;
 
 import javafx.application.Application;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Scene;
+import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
@@ -20,6 +23,7 @@ public class GUIMain extends Application
 	private final Scene editScene;
 	private final EditPerspective editPane;
 	private final SimpleBooleanProperty endianess;
+	private final SimpleObjectProperty<Font> editorFont;
 	
 	private final FileChooser fileChooser;
 	private static final ExtensionFilter[] sourceExtensions = {
@@ -36,6 +40,7 @@ public class GUIMain extends Application
 		instance = this;
 		this.fileChooser = new FileChooser();
 		this.endianess = new SimpleBooleanProperty();
+		this.editorFont = new SimpleObjectProperty<Font>(Font.font("Courier New", 13));
 		this.editPane = new EditPerspective();
 		this.editScene = new Scene(this.editPane);
 	}
@@ -159,6 +164,21 @@ public class GUIMain extends Application
 	public void setEndianess(boolean endianess)
 	{
 		this.endianess.set(endianess);
+	}
+	
+	public Font getEditorFont()
+	{
+		return this.editorFont.get();
+	}
+	
+	public void setEditorFont(Font newFont)
+	{
+		this.editorFont.set(newFont);
+	}
+	
+	public ObjectProperty<Font> editorFont()
+	{
+		return this.editorFont;
 	}
 
 	public void closeWindow()
