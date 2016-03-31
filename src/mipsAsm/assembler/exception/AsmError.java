@@ -49,7 +49,7 @@ public class AsmError extends Exception
 	{
 		String s = String.format("Error in file %s, line %d: %s\n", this.occurence.fileName, this.occurence.lineNum, this.type);
 		s = s + this.getMessage() + "\n";
-		s = s + this.occurence.lineNum + "  " + this.occurence.lineContent + "\n";
+		s = s + this.occurence.lineNum + "  " + this.occurence.lineContent + "\n\n";
 		return s;
 	}
 

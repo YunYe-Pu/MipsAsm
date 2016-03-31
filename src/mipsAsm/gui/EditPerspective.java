@@ -49,6 +49,7 @@ public class EditPerspective extends BorderPane
 	
 	public EditPerspective()
 	{
+		super();
 		this.menuBar = new MenuBar();
 		this.menus = new Menu[8];
 		this.menuItems = new MenuItem[8][];
@@ -92,8 +93,8 @@ public class EditPerspective extends BorderPane
 		
 		//The single F3 key shortcut somehow doesn't work when focusing on a text area, so use Ctrl+F3 as an alternative.
 		this.menuItems[1] = new MenuItem[4];
-		this.menuItems[1][0] = MenuHelper.item("Assemble current source", e -> this.onAssembleSingle(true), KeyCode.F3, KeyCombination.SHORTCUT_DOWN);
-		this.menuItems[1][1] = MenuHelper.item("Assemble all source", e -> this.onAssembleAll(true), KeyCode.F4, KeyCombination.SHORTCUT_DOWN);
+		this.menuItems[1][0] = MenuHelper.item("Assemble current source", e -> this.onAssembleSingle(true), KeyCode.F3);
+		this.menuItems[1][1] = MenuHelper.item("Assemble all source", e -> this.onAssembleAll(true), KeyCode.F4);
 		this.menuItems[1][2] = new SeparatorMenuItem();
 		this.menuItems[1][3] = MenuHelper.item("Disassemble", e -> this.onDisassemble(), "D", KeyCombination.SHORTCUT_DOWN);
 		this.menus[1] = MenuHelper.menu("Assemble", this.menuItems[1], "A");

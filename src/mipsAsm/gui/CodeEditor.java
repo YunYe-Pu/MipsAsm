@@ -51,6 +51,10 @@ public class CodeEditor extends Tab
 		this.setOnClosed(onTabChange);
 		this.setOnSelectionChanged(onTabChange);
 		this.onTabChange = onTabChange;
+		this.textArea.setOnKeyPressed(e -> {
+			if(e.getCode().isFunctionKey())
+				this.textArea.getParent().fireEvent(e);
+		});
 	}
 	
 	/**
