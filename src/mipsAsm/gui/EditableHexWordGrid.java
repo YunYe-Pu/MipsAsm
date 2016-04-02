@@ -1,5 +1,7 @@
 package mipsAsm.gui;
 
+import java.util.function.IntPredicate;
+
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -17,14 +19,15 @@ public abstract class EditableHexWordGrid extends GridPane
 	protected int currModify = -1;
 	protected String prevText = null;
 	
-	public EditableHexWordGrid(int rows, int columns, int editableRow, int editableCol, int cellWidth, int cellHeight)
+	public EditableHexWordGrid(int rows, int columns, int cellWidth, int cellHeight, int hGap, int vGap, 
+			IntPredicate editable)
 	{
 		super();
 		int cnt = rows * columns;
 		this.labels = new Label[cnt];
 		for(int i = 0; i < cnt; i++)
 		{
-			if(i % columns >= editableCol && i / columns >= editableRow)
+			if(editable.test(i))
 			{
 				this.labels[i] = new IndexedLabel(i);
 				this.labels[i].setOnMouseClicked(e -> this.onLabelClicked(e));
@@ -45,9 +48,10 @@ public abstract class EditableHexWordGrid extends GridPane
 		this.editText.setVisible(false);
 		this.editText.setOnKeyPressed(e -> this.onTextKeyPressed(e));
 		this.editText.fontProperty().bind(GUIMain.instance.editorFont());
+		this.setHgap(hGap);
+		this.setVgap(vGap);
 		
 		this.drawHeader();
-		this.redraw();
 	}
 	
 	private void onLabelClicked(MouseEvent event)
@@ -98,6 +102,7 @@ public abstract class EditableHexWordGrid extends GridPane
 		this.editText.setText(this.prevText);
 		this.labels[index].setGraphic(this.editText);
 		this.editText.setVisible(true);
+		this.editText.requestFocus();
 		this.currModify = index;
 	}
 	

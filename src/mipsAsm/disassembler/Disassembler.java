@@ -3,7 +3,7 @@ package mipsAsm.disassembler;
 import java.util.ArrayList;
 import java.util.function.Function;
 
-import mipsAsm.assembler.util.InstructionFmt;
+import mipsAsm.assembler.util.InstrFmt;
 import mipsAsm.disassembler.util.OpFormatter;
 
 public final class Disassembler
@@ -57,7 +57,7 @@ public final class Disassembler
 		idioms.add(i -> {
 			if(((i >> 26) & 0x3f) == 0x04)
 			{
-				int[] param = InstructionFmt.I.splitBinary(i);
+				int[] param = InstrFmt.I.splitBinary(i);
 				if(param[0] == param[1])
 					return OpFormatter.format("b\t%i", param[2]);
 			}
@@ -66,7 +66,7 @@ public final class Disassembler
 		idioms.add(i -> {
 			if(((i >> 26) & 0x3f) == 0x00 && (i & 0x3f) == 0x25)
 			{
-				int[] param = InstructionFmt.R.splitBinary(i);
+				int[] param = InstrFmt.R.splitBinary(i);
 				if(param[0] == 0)
 					return OpFormatter.format("move\t%r, %r", param[2], param[1]);
 				else if(param[1] == 0)

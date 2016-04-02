@@ -2,7 +2,7 @@ package mipsAsm.disassembler;
 
 import java.util.function.Function;
 
-import mipsAsm.assembler.util.InstructionFmt;
+import mipsAsm.assembler.util.InstrFmt;
 import mipsAsm.disassembler.util.DisassemblyEntry;
 import mipsAsm.disassembler.util.OpFormatter;
 
@@ -81,11 +81,11 @@ public final class OpSpecial
 	}
 	
 	public static final Function<Integer, String> disassembly = binary -> {
-		int[] param = InstructionFmt.R.splitBinary(binary);
+		int[] param = InstrFmt.R.splitBinary(binary);
 		DisassemblyEntry e = entryMap[param[4] & 63];
 		if(e == null)
 		{
-			param = InstructionFmt.F20_6.splitBinary(binary);
+			param = InstrFmt.F20_6.splitBinary(binary);
 			param[1] &= 63;
 			if(param[1] == 0x0c)//syscall
 				return OpFormatter.format("syscall\t%i", param[0]);
@@ -99,11 +99,11 @@ public final class OpSpecial
 	};
 	
 	public static final Function<Integer, String> disassembly2 = binary -> {
-		int[] param = InstructionFmt.R.splitBinary(binary);
+		int[] param = InstrFmt.R.splitBinary(binary);
 		DisassemblyEntry e = entryMap[param[4] & 63];
 		if(e == null)
 		{
-			param = InstructionFmt.F20_6.splitBinary(binary);
+			param = InstrFmt.F20_6.splitBinary(binary);
 			param[1] &= 63;
 			if(param[1] == 0x3f)//sdbbp
 				return OpFormatter.format("sdbbp\t%i", param[0]);

@@ -2,13 +2,13 @@ package mipsAsm.disassembler;
 
 import java.util.function.Function;
 
-import mipsAsm.assembler.util.InstructionFmt;
+import mipsAsm.assembler.util.InstrFmt;
 import mipsAsm.disassembler.util.DisassemblyEntry;
 
 public enum Instructions implements Function<Integer, String>
 {
-	J    (0x02, "%i", InstructionFmt.J, 0),
-	JAL  (0x03, "%i", InstructionFmt.J, 0),
+	J    (0x02, "%i", InstrFmt.J, 0),
+	JAL  (0x03, "%i", InstrFmt.J, 0),
 	BEQ  (0x04, "%r, %r, %i", 0, 1, 2),
 	BNE  (0x05, "%r, %r, %i", 0, 1, 2),
 	BLEZ (0x06, "%r, %i", 0, 2),
@@ -46,10 +46,10 @@ public enum Instructions implements Function<Integer, String>
 	;
 
 	public final int opCode;
-	public final InstructionFmt binaryFormat;
+	public final InstrFmt binaryFormat;
 	public final DisassemblyEntry disassembly;
 	
-	private Instructions(int opCode, String format, InstructionFmt binaryFormat, int... order)
+	private Instructions(int opCode, String format, InstrFmt binaryFormat, int... order)
 	{
 		this.opCode = opCode;
 		this.binaryFormat = binaryFormat;
@@ -58,7 +58,7 @@ public enum Instructions implements Function<Integer, String>
 	
 	private Instructions(int opCode, String format, int... order)
 	{
-		this(opCode, format, InstructionFmt.I, order);
+		this(opCode, format, InstrFmt.I, order);
 	}
 	
 	@Override

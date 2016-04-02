@@ -10,7 +10,7 @@ import mipsAsm.assembler.operand.OpRegister;
 import mipsAsm.assembler.operand.OpSplit;
 import mipsAsm.assembler.operand.Operand;
 import mipsAsm.assembler.util.AsmWarning;
-import mipsAsm.assembler.util.InstructionFmt;
+import mipsAsm.assembler.util.InstrFmt;
 import mipsAsm.assembler.util.LinkType;
 import mipsAsm.assembler.util.OperandFmt;
 
@@ -31,8 +31,8 @@ public final class LambdaMacros
 		opORI[1] = operands[0];
 		opORI[2] = new OpSplit(operands[1], 0);
 		
-		instrList.add(InstructionFmt.I.newInstance(0x0f, opLUI, null, warningHandler));
-		instrList.add(InstructionFmt.I.newInstance(0x0d, opORI, null, warningHandler));
+		instrList.add(InstrFmt.I.newInstance(0x0f, opLUI, null, warningHandler));
+		instrList.add(InstrFmt.I.newInstance(0x0d, opORI, null, warningHandler));
 	};
 	
 	public static final InstructionParser LA = (operands, warningHandler, instrList) ->
@@ -60,8 +60,8 @@ public final class LambdaMacros
 		opORI[1] = operands[0];
 		opORI[2] = new OpSplit(operands[1], 0);
 		
-		instrList.add(InstructionFmt.I.newInstance(0x0f, opLUI, LinkType.ABSOLUTE_BYTE, warningHandler));
-		instrList.add(InstructionFmt.I.newInstance(0x0d, opORI, LinkType.ABSOLUTE_BYTE, warningHandler));
+		instrList.add(InstrFmt.I.newInstance(0x0f, opLUI, LinkType.ABSOLUTE_BYTE, warningHandler));
+		instrList.add(InstrFmt.I.newInstance(0x0d, opORI, LinkType.ABSOLUTE_BYTE, warningHandler));
 	};
 
 	

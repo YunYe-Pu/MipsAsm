@@ -42,17 +42,17 @@ public class EditPerspective extends BorderPane
 	private final ByteArrayOutputStream consoleBuffer;
 	private final Assembler assembler;
 	
-	private final Alert assemblePrompt1 = new Alert(AlertType.CONFIRMATION, "There are unsaved modifications. Do you want to save them?", ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
-	private final Alert assemblePrompt2 = new Alert(AlertType.ERROR, "Unknown error occurred during assembly.", ButtonType.OK);
-	private final Alert assemblePrompt3 = new Alert(AlertType.ERROR, "Unable to open some of the assembly input files. Please verify whether they have changed on disk.", ButtonType.OK);
-	private final Alert disassemblePrompt = new Alert(AlertType.ERROR, "Wrong file format for binary.", ButtonType.OK);
+	private static final Alert assemblePrompt1 = new Alert(AlertType.CONFIRMATION, "There are unsaved modifications. Do you want to save them?", ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
+	private static final Alert assemblePrompt2 = new Alert(AlertType.ERROR, "Unknown error occurred during assembly.", ButtonType.OK);
+	private static final Alert assemblePrompt3 = new Alert(AlertType.ERROR, "Unable to open some of the assembly input files. Please verify whether they have changed on disk.", ButtonType.OK);
+	private static final Alert disassemblePrompt = new Alert(AlertType.ERROR, "Wrong file format for binary.", ButtonType.OK);
 	
 	public EditPerspective()
 	{
 		super();
 		this.menuBar = new MenuBar();
-		this.menus = new Menu[8];
-		this.menuItems = new MenuItem[8][];
+		this.menus = new Menu[4];
+		this.menuItems = new MenuItem[4][];
 		this.buildMenus();
 		
 		this.codeEditors = new TabPane();
@@ -60,6 +60,9 @@ public class EditPerspective extends BorderPane
 		this.console = new TextArea();
 		this.console.setEditable(false);
 		this.console.fontProperty().bind(GUIMain.instance.editorFont());
+		this.console.setOnKeyPressed(e -> {
+			if(e.getCode().isFunctionKey()) this.console.getParent().fireEvent(e);
+		});
 		this.consoleBuffer = new ByteArrayOutputStream();
 		this.assembler = new Assembler(new PrintStream(this.consoleBuffer));
 		Pane p1 = new Pane(this.codeEditors, this.console);
@@ -70,7 +73,6 @@ public class EditPerspective extends BorderPane
 		this.console.prefWidthProperty().bind(p1.widthProperty());
 		this.console.setLayoutX(0);
 		this.console.layoutYProperty().bind(p1.heightProperty().multiply(0.8f));
-		
 		
 		GUIMain.instance.endianess().addListener((e, oldVal, newVal) -> this.assembler.setEndianess(newVal));
 		GUIMain.instance.endianess().addListener((e, oldVal, newVal) -> this.menuItems[3][0].setText(newVal? "Endian:big": "Endian:little"));
@@ -110,7 +112,7 @@ public class EditPerspective extends BorderPane
 		this.menuItems[3][0] = MenuHelper.item("Endian:little", e -> this.onEndianessSelect());
 		this.menus[3] = MenuHelper.menu("Options", this.menuItems[3], "O");
 		
-		this.menuBar.getMenus().addAll(this.menus[0], this.menus[1], this.menus[2], this.menus[3]);
+		this.menuBar.getMenus().addAll(this.menus);
 	}
 	
 	private BitStream assemble(File[] input)
@@ -124,7 +126,7 @@ public class EditPerspective extends BorderPane
 		}
 		catch(FileNotFoundException e)
 		{
-			this.assemblePrompt3.showAndWait();
+			assemblePrompt3.showAndWait();
 			e.printStackTrace();
 			return null;
 		}
@@ -158,7 +160,7 @@ public class EditPerspective extends BorderPane
 		}
 		catch(IOException e)
 		{
-			this.assemblePrompt2.showAndWait();
+			assemblePrompt2.showAndWait();
 			e.printStackTrace();
 			return false;
 		}
@@ -166,7 +168,7 @@ public class EditPerspective extends BorderPane
 	
 	//Event handler callbacks
 	
-	protected void onNewSource()
+	private void onNewSource()
 	{
 		this.codeEditors.getTabs().add(new CodeEditorTab(null, e -> this.onEditorTabChange()));
 		this.codeEditors.getSelectionModel().selectLast();
@@ -174,7 +176,7 @@ public class EditPerspective extends BorderPane
 		this.console.clear();
 	}
 	
-	protected boolean onOpenSource()
+	private boolean onOpenSource()
 	{
 		List<File> list = GUIMain.instance.promptOpenMultiSource();
 		if(list == null) return false;
@@ -187,29 +189,29 @@ public class EditPerspective extends BorderPane
 		return true;
 	}
 	
-	protected boolean onSave()
+	private boolean onSave()
 	{
 		return ((CodeEditorTab)this.codeEditors.getSelectionModel().getSelectedItem()).save();	
 	}
 	
-	protected boolean onSaveAs()
+	private boolean onSaveAs()
 	{
 		return ((CodeEditorTab)this.codeEditors.getSelectionModel().getSelectedItem()).saveAs();
 	}
 
-	protected boolean onSaveAll()
+	private boolean onSaveAll()
 	{
 		for(Tab t : this.codeEditors.getTabs())
 			if(!((CodeEditorTab)t).save()) return false;
 		return true;
 	}
 	
-	protected boolean onReload()
+	private boolean onReload()
 	{
 		return ((CodeEditorTab)this.codeEditors.getSelectionModel().getSelectedItem()).reload();
 	}
 	
-	protected void onReloadAll()
+	private void onReloadAll()
 	{
 		for(Tab t : this.codeEditors.getTabs())
 			((CodeEditorTab)t).reload();
@@ -249,7 +251,7 @@ public class EditPerspective extends BorderPane
 		}
 	}
 	
-	protected BitStream onAssembleSingle(boolean save)
+	private BitStream onAssembleSingle(boolean save)
 	{
 		CodeEditorTab e = (CodeEditorTab)this.codeEditors.getSelectionModel().getSelectedItem();
 		if(e.save())
@@ -265,13 +267,13 @@ public class EditPerspective extends BorderPane
 			return null;
 	}
 	
-	protected BitStream onAssembleAll(boolean save)
+	private BitStream onAssembleAll(boolean save)
 	{
 		for(Tab t : this.codeEditors.getTabs())
 		{
 			if(((CodeEditorTab)t).hasContentChanged())
 			{
-				Optional<ButtonType> result = this.assemblePrompt1.showAndWait();
+				Optional<ButtonType> result = assemblePrompt1.showAndWait();
 				if(result.isPresent() && result.get() == ButtonType.YES)
 				{
 					if(this.onSaveAll())
@@ -292,14 +294,14 @@ public class EditPerspective extends BorderPane
 		return result;
 	}
 	
-	protected boolean onDisassemble()
+	private boolean onDisassemble()
 	{
 		File f = GUIMain.instance.promptOpenBinary();
 		if(f == null) return false;
 		int[] data = BinaryType.read(f, GUIMain.instance.getEndianess());
 		if(data == null)
 		{
-			this.disassemblePrompt.showAndWait();
+			disassemblePrompt.showAndWait();
 			return false;
 		}
 		StringBuilder str = Disassembler.disassemble(data);
@@ -309,39 +311,39 @@ public class EditPerspective extends BorderPane
 		return true;
 	}
 	
-	protected boolean onSimCurrentProj()
+	private boolean onSimCurrentProj()
 	{
 		BitStream s = this.onAssembleAll(false);
 		if(s == null) return false;
 		return GUIMain.instance.startSimulation(s.getData());
 	}
 	
-	protected boolean onSimCurrentFile()
+	private boolean onSimCurrentFile()
 	{
 		BitStream s = this.onAssembleSingle(false);
 		if(s == null) return false;
 		return GUIMain.instance.startSimulation(s.getData());
 	}
 	
-	protected boolean onSimNew()
+	private boolean onSimNew()
 	{
 		File f = GUIMain.instance.promptOpenBinary();
 		if(f == null) return false;
 		return GUIMain.instance.startSimulation(f);
 	}
 	
-	protected void onEndianessSelect()
+	private void onEndianessSelect()
 	{
 		GUIMain.instance.setEndianess(!GUIMain.instance.getEndianess());
 	}
 	
-	public boolean closeAllTabs()
+	protected boolean closeAllTabs()
 	{
 		for(Tab t : this.codeEditors.getTabs())
 		{
 			if(((CodeEditorTab)t).hasContentChanged())
 			{
-				Optional<ButtonType> result = this.assemblePrompt1.showAndWait();
+				Optional<ButtonType> result = assemblePrompt1.showAndWait();
 				if(result.isPresent())
 				{
 					if(result.get() == ButtonType.YES)

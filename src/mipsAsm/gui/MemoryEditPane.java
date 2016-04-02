@@ -32,11 +32,17 @@ public class MemoryEditPane extends BorderPane
 		this.setRight(this.scrollV);
 	}
 	
+	public void redraw()
+	{
+		this.dispPane.redraw();
+	}
+	
 	private class MemoryEditGrid extends EditableHexWordGrid
 	{
 		public MemoryEditGrid()
 		{
-			super(9, 9, 1, 0, 80, 25);
+			super(9, 9, 80, 20, 4, 0, i -> (i / 9 > 0));
+			this.redraw();
 		}
 
 		@Override

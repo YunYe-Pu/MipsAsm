@@ -19,11 +19,13 @@ public class GUIMain extends Application
 {
 	public static GUIMain instance;
 	private Stage primaryStage;
-	
-	private final Scene editScene;
-	private final EditPerspective editPane;
+
 	private final SimpleBooleanProperty endianess;
 	private final SimpleObjectProperty<Font> editorFont;
+	
+	private final Scene scene;
+	private final EditPerspective editPane;
+	private final SimulatePerspective simPane;
 	
 	private final FileChooser fileChooser;
 	private static final ExtensionFilter[] sourceExtensions = {
@@ -40,9 +42,10 @@ public class GUIMain extends Application
 		instance = this;
 		this.fileChooser = new FileChooser();
 		this.endianess = new SimpleBooleanProperty();
-		this.editorFont = new SimpleObjectProperty<Font>(Font.font("Courier New", 13));
+		this.editorFont = new SimpleObjectProperty<Font>(Font.font("Courier New"));
 		this.editPane = new EditPerspective();
-		this.editScene = new Scene(this.editPane);
+		this.simPane = new SimulatePerspective();
+		this.scene = new Scene(this.editPane);
 	}
 	
 	
@@ -51,7 +54,7 @@ public class GUIMain extends Application
 	{
 		this.primaryStage = primaryStage;
 		
-		primaryStage.setScene(this.editScene);
+		primaryStage.setScene(this.scene);
 		primaryStage.setWidth(800);
 		primaryStage.setHeight(600);
 		primaryStage.setOnCloseRequest(e -> {if(!this.onCloseRequest()) e.consume();});
@@ -64,7 +67,7 @@ public class GUIMain extends Application
 		Application.launch(args);
 	}
 	
-	public File promptSaveSource()
+	protected File promptSaveSource()
 	{
 		this.fileChooser.setTitle("Save source:");
 		this.fileChooser.getExtensionFilters().setAll(sourceExtensions);
@@ -74,7 +77,7 @@ public class GUIMain extends Application
 		return f;
 	}
 
-	public File promptSaveBinary()
+	protected File promptSaveBinary()
 	{
 		this.fileChooser.setTitle("Save binary:");
 		this.fileChooser.getExtensionFilters().setAll(binaryExtensions);
@@ -84,7 +87,7 @@ public class GUIMain extends Application
 		return f;
 	}
 	
-	public File promptOpenSource()
+	protected File promptOpenSource()
 	{
 		this.fileChooser.setTitle("Open source:");
 		this.fileChooser.getExtensionFilters().setAll(sourceExtensions);
@@ -94,7 +97,7 @@ public class GUIMain extends Application
 		return f;
 	}
 
-	public List<File> promptOpenMultiSource()
+	protected List<File> promptOpenMultiSource()
 	{
 		this.fileChooser.setTitle("Open sources:");
 		this.fileChooser.getExtensionFilters().setAll(sourceExtensions);
@@ -108,7 +111,7 @@ public class GUIMain extends Application
 			return null;
 	}
 	
-	public File promptOpenBinary()
+	protected File promptOpenBinary()
 	{
 		this.fileChooser.setTitle("Open binary:");
 		this.fileChooser.getExtensionFilters().setAll(binaryExtensions);
@@ -118,7 +121,7 @@ public class GUIMain extends Application
 		return f;
 	}
 
-	public List<File> promptOpenMultiBinary()
+	protected List<File> promptOpenMultiBinary()
 	{
 		this.fileChooser.setTitle("Open binaries:");
 		this.fileChooser.getExtensionFilters().setAll(binaryExtensions);
@@ -132,23 +135,30 @@ public class GUIMain extends Application
 			return null;
 	}
 	
-	public void setTitle(String title)
+	protected void setTitle(String title)
 	{
 		this.primaryStage.setTitle(title);
 	}
 	
-	public boolean startSimulation(File file)
+	protected boolean startSimulation(File file)
 	{
 		int[] binary = BinaryType.read(file, this.endianess.get());
 		if(binary == null) return false;
 		return this.startSimulation(binary);
 	}
 	
-	public boolean startSimulation(int[] binary)
+	protected boolean startSimulation(int[] binary)
 	{
-		//TODO
-		
-		return false;
+		this.simPane.loadProgram(binary);
+		this.scene.setRoot(this.simPane);
+		this.primaryStage.setTitle("MIPS Assembler IDE - Simulation");
+		return true;
+	}
+	
+	protected void endSimulation()
+	{
+		this.scene.setRoot(this.editPane);
+		this.editPane.onEditorTabChange();
 	}
 	
 	public boolean getEndianess()
@@ -188,6 +198,8 @@ public class GUIMain extends Application
 	
 	public boolean onCloseRequest()
 	{
+		this.scene.setRoot(this.editPane);
+		this.editPane.onEditorTabChange();
 		return this.editPane.closeAllTabs();
 	}
 }
