@@ -159,7 +159,7 @@ public class Instructions
 		instructionMap[41] = new Instruction(InstructionFmt.I, (sim, p) -> //sh
 			sim.mem.writeHalfWord(sim.reg.get(p[0]) + p[2], sim.reg.get(p[1])));
 		instructionMap[42] = new Instruction(InstructionFmt.I, (sim, p) -> //swl
-			sim.mem.writeRight(sim.reg.get(p[0]) + p[2], sim.reg.get(p[1])));
+			sim.mem.writeLeft(sim.reg.get(p[0]) + p[2], sim.reg.get(p[1])));
 		instructionMap[43] = new Instruction(InstructionFmt.I, (sim, p) -> //sw
 			sim.mem.writeWord(sim.reg.get(p[0]) + p[2], sim.reg.get(p[1])));
 		instructionMap[44] = null;

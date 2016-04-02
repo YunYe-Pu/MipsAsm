@@ -9,9 +9,8 @@ public final class OpRegimm
 {
 	private OpRegimm() {}
 	
-	//TODO change field to private before release
 	@SuppressWarnings("unchecked")
-	public static final BiConsumer<Simulator, int[]>[] executors = new BiConsumer[32];
+	private static final BiConsumer<Simulator, int[]>[] executors = new BiConsumer[32];
 
 	public static final BiConsumer<Simulator, int[]> executor = (sim, p) -> executors[p[1] & 31].accept(sim, p);
 

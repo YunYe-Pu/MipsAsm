@@ -49,7 +49,7 @@ public class SimulatePerspective extends BorderPane
 	private final MenuItem[][] menuItems;
 	
 	private static final Alert disassemblePrompt = new Alert(AlertType.ERROR, "Wrong file format for binary.", ButtonType.OK);
-	private static final Alert simPrompt = new Alert(AlertType.INFORMATION, "Program counter has gone beyond the program data section."
+	private static final Alert simPrompt = new Alert(AlertType.INFORMATION, "Program counter has reached the boundary of program data."
 			+ " The run operation will be unavailable from now on.", ButtonType.OK);
 	
 	public SimulatePerspective()
@@ -76,7 +76,6 @@ public class SimulatePerspective extends BorderPane
 		this.regPane = new RegisterEditPane(this.simulator.reg);
 		this.bottomPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 		this.bottomPane.getTabs().addAll(new Tab("Memory", this.memPane), new Tab("Register", this.regPane));
-//		this.bottomPane.setPrefHeight(210);
 		
 		this.disassemblyContent = new TextArea();
 		this.disassemblyContent.fontProperty().bind(GUIMain.instance.editorFont());
@@ -146,7 +145,11 @@ public class SimulatePerspective extends BorderPane
 		this.regPane.redraw();
 		this.sidePaneLabels[0].setText(String.format("PC:                  %08x", this.simulator.getPC()));
 		this.sidePaneLabels[1].setText(String.format("Next instruction:    %08x", this.simulator.getCurrInstruction()));
-		this.sidePaneLabels[2].setText("  " + Disassembler.disassemble(this.simulator.getCurrInstruction()));
+		String disassemble = Disassembler.disassemble(this.simulator.getCurrInstruction());
+		if(disassemble.startsWith("."))
+			this.sidePaneLabels[2].setText("  Unrecognized instruction");
+		else
+			this.sidePaneLabels[2].setText("  " + disassemble);
 		this.sidePaneLabels[3].setText("Last exception:");
 		this.sidePaneLabels[4].setText(this.simulator.getLastException() == null? "  None": "  " + this.simulator.getLastException().name());
 	}

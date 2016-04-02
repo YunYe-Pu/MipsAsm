@@ -144,27 +144,29 @@ public class Memory
 	
 	public int readLeft(int address, int originValue)
 	{
-		int val = this.readWord(address);
-		int mask = 0x00ffffff >> (((address ^ this.endianess) & 0x3) << 3);
-		return (originValue & mask) | (val & ~mask);
+		int shift = (((~address ^ this.endianess) & 0x3) << 3);
+		int mask = 0xffffffff << shift;
+		return (originValue & ~mask) | ((this.readWord(address) << shift) & mask);
 	}
 	
 	public int readRight(int address, int originValue)
 	{
-		int val = this.readWord(address);
-		int mask = 0xffffff00 << (((~address ^ this.endianess) & 0x3) << 3);
-		return (originValue & mask) | (val & ~mask);
+		int shift = (((address ^ this.endianess) & 0x3) << 3);
+		int mask = 0xffffff00 << (24 - shift);
+		return (originValue & mask) | ((this.readWord(address) >> shift) & ~mask);
 	}
 	
 	public void writeLeft(int address, int value)
 	{
-		int mask = 0xffffff00 << (((address ^ this.endianess) & 0x3) << 3);
-		this.writeWord(address, (value & mask) | (this.readWord(address) & ~mask));
+		int shift = (((address ^ this.endianess) & 0x3) << 3);
+		int mask = 0xffffff00 << shift;
+		this.writeWord(address, ((value >> (24 - shift)) & ~mask) | (this.readWord(address) & mask));
 	}
 	
 	public void writeRight(int address, int value)
 	{
-		int mask = 0x00ffffff >> (((~address ^ this.endianess) & 0x3) << 3);
-		this.writeWord(address, (value & mask) | (this.readWord(address) & ~mask));
+		int shift = (((address ^ this.endianess) & 0x3) << 3);
+		int mask = 0xffffffff << shift;
+		this.writeWord(address, ((value << shift) & mask) | (this.readWord(address) & ~mask));
 	}
 }
