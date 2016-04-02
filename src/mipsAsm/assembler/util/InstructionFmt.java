@@ -14,16 +14,16 @@ import mipsAsm.assembler.operand.Operand;
  * 
  * @author YunYe Pu
  */
-public class InstrFmt
+public class InstructionFmt
 {
-	public static final InstrFmt R = new InstrFmt(5, 5, 5, 5, 6);
-	public static final InstrFmt I = new InstrFmt(5, 5, 16);
-	public static final InstrFmt J = new InstrFmt(26);
-	public static final InstrFmt F20_6 = new InstrFmt(20, 6);
+	public static final InstructionFmt R = new InstructionFmt(5, 5, 5, 5, 6);
+	public static final InstructionFmt I = new InstructionFmt(5, 5, 16);
+	public static final InstructionFmt J = new InstructionFmt(26);
+	public static final InstructionFmt F20_6 = new InstructionFmt(20, 6);
 	
 	private final int[] fieldLength;
 
-	public InstrFmt(int... field)
+	public InstructionFmt(int... field)
 	{
 		this.fieldLength = field;
 	}

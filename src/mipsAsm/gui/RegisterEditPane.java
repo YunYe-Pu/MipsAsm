@@ -33,7 +33,6 @@ public class RegisterEditPane extends EditableHexWordGrid
 	public void commitModify(int newValue)
 	{
 		this.regs.set(((this.currModify & 0xf0) >> 1) | (this.currModify & 7), newValue);
-		this.redraw();
 	}
 
 }

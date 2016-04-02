@@ -2,7 +2,7 @@ package mipsAsm.disassembler;
 
 import java.util.function.Function;
 
-import mipsAsm.assembler.util.InstrFmt;
+import mipsAsm.assembler.util.InstructionFmt;
 import mipsAsm.disassembler.util.DisassemblyEntry;
 
 public final class OpRegimm
@@ -37,7 +37,7 @@ public final class OpRegimm
 	}
 	
 	public static final Function<Integer, String> disassembly = binary -> {
-		int[] param = InstrFmt.I.splitBinary(binary);
+		int[] param = InstructionFmt.I.splitBinary(binary);
 		DisassemblyEntry e = entryMap[param[1]];
 		if(e == null)
 			return null;

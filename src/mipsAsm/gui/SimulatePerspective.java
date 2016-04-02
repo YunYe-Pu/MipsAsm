@@ -6,7 +6,6 @@ import java.util.function.Predicate;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
@@ -51,7 +50,7 @@ public class SimulatePerspective extends BorderPane
 	
 	private static final Alert disassemblePrompt = new Alert(AlertType.ERROR, "Wrong file format for binary.", ButtonType.OK);
 	private static final Alert simPrompt = new Alert(AlertType.INFORMATION, "Program counter has gone beyond the program data section."
-			+ " Only step operation will be available from now on.", ButtonType.OK);
+			+ " The run operation will be unavailable from now on.", ButtonType.OK);
 	
 	public SimulatePerspective()
 	{
@@ -68,13 +67,7 @@ public class SimulatePerspective extends BorderPane
 		{
 			this.sidePaneLabels[i] = new Label();
 			this.sidePaneLabels[i].fontProperty().bind(GUIMain.instance.editorFont());
-			this.sidePaneLabels[i].setPrefWidth(210);
 		}
-		this.sidePaneLabels[0].setAlignment(Pos.CENTER_LEFT);
-		this.sidePaneLabels[1].setAlignment(Pos.CENTER_LEFT);
-		this.sidePaneLabels[2].setAlignment(Pos.CENTER_RIGHT);
-		this.sidePaneLabels[3].setAlignment(Pos.CENTER_LEFT);
-		this.sidePaneLabels[4].setAlignment(Pos.CENTER_RIGHT);
 		this.sidePane = new VBox(this.sidePaneLabels);
 		this.sidePane.setPadding(new Insets(10, 10, 10, 10));
 		
@@ -83,7 +76,7 @@ public class SimulatePerspective extends BorderPane
 		this.regPane = new RegisterEditPane(this.simulator.reg);
 		this.bottomPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 		this.bottomPane.getTabs().addAll(new Tab("Memory", this.memPane), new Tab("Register", this.regPane));
-		this.bottomPane.setPrefHeight(210);
+//		this.bottomPane.setPrefHeight(210);
 		
 		this.disassemblyContent = new TextArea();
 		this.disassemblyContent.fontProperty().bind(GUIMain.instance.editorFont());
@@ -153,9 +146,9 @@ public class SimulatePerspective extends BorderPane
 		this.regPane.redraw();
 		this.sidePaneLabels[0].setText(String.format("PC:                  %08x", this.simulator.getPC()));
 		this.sidePaneLabels[1].setText(String.format("Next instruction:    %08x", this.simulator.getCurrInstruction()));
-		this.sidePaneLabels[2].setText(Disassembler.disassemble(this.simulator.getCurrInstruction()));
+		this.sidePaneLabels[2].setText("  " + Disassembler.disassemble(this.simulator.getCurrInstruction()));
 		this.sidePaneLabels[3].setText("Last exception:");
-		this.sidePaneLabels[4].setText(this.simulator.getLastException() == null? "None": this.simulator.getLastException().name());
+		this.sidePaneLabels[4].setText(this.simulator.getLastException() == null? "  None": "  " + this.simulator.getLastException().name());
 	}
 	
 	private boolean onOpen()
