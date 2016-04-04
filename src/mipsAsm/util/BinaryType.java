@@ -115,7 +115,6 @@ public enum BinaryType
 		}
 		catch(Exception e)
 		{
-			e.printStackTrace();
 			return null;
 		}
 		int[] ret = new int[binary.size()];

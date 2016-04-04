@@ -95,7 +95,7 @@ public class CodeEditorTab extends Tab
 		}
 		catch(FileNotFoundException e)
 		{
-			e.printStackTrace();
+			
 		}
 	}
 	

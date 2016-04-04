@@ -19,6 +19,8 @@ public class GUIMain extends Application
 {
 	public static GUIMain instance;
 	private Stage primaryStage;
+	private static File[] initialFile;
+	private static boolean initialEndian;
 
 	private final SimpleBooleanProperty endianess;
 	private final SimpleObjectProperty<Font> editorFont;
@@ -58,12 +60,21 @@ public class GUIMain extends Application
 		primaryStage.setWidth(800);
 		primaryStage.setHeight(600);
 		primaryStage.setOnCloseRequest(e -> {if(!this.onCloseRequest()) e.consume();});
-		this.editPane.onEditorTabChange();
+		if(initialFile != null && initialFile.length > 0)
+		{
+			for(File f : initialFile)
+				this.editPane.openFile(f);
+		}
+		else
+			this.editPane.onEditorTabChange();
+		this.endianess.set(initialEndian);
 		primaryStage.show();
 	}
 	
-	public static void launch(String... args)
+	public static void launchGUI(File[] initialFile, boolean initialEndian, String... args)
 	{
+		GUIMain.initialFile = initialFile;
+		GUIMain.initialEndian = initialEndian;
 		Application.launch(args);
 	}
 	
@@ -161,42 +172,42 @@ public class GUIMain extends Application
 		this.editPane.onEditorTabChange();
 	}
 	
-	public boolean getEndianess()
+	protected boolean getEndianess()
 	{
 		return this.endianess.get();
 	}
 	
-	public BooleanProperty endianess()
+	protected BooleanProperty endianess()
 	{
 		return this.endianess;
 	}
 	
-	public void setEndianess(boolean endianess)
+	protected void setEndianess(boolean endianess)
 	{
 		this.endianess.set(endianess);
 	}
 	
-	public Font getEditorFont()
+	protected Font getEditorFont()
 	{
 		return this.editorFont.get();
 	}
 	
-	public void setEditorFont(Font newFont)
+	protected void setEditorFont(Font newFont)
 	{
 		this.editorFont.set(newFont);
 	}
 	
-	public ObjectProperty<Font> editorFont()
+	protected ObjectProperty<Font> editorFont()
 	{
 		return this.editorFont;
 	}
 
-	public void closeWindow()
+	protected void closeWindow()
 	{
 		this.primaryStage.close();
 	}
 	
-	public boolean onCloseRequest()
+	protected boolean onCloseRequest()
 	{
 		this.scene.setRoot(this.editPane);
 		this.editPane.onEditorTabChange();

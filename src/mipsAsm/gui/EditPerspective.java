@@ -127,7 +127,6 @@ public class EditPerspective extends BorderPane
 		catch(FileNotFoundException e)
 		{
 			assemblePrompt3.showAndWait();
-			e.printStackTrace();
 			return null;
 		}
 	}
@@ -161,7 +160,6 @@ public class EditPerspective extends BorderPane
 		catch(IOException e)
 		{
 			assemblePrompt2.showAndWait();
-			e.printStackTrace();
 			return false;
 		}
 	}
@@ -335,6 +333,14 @@ public class EditPerspective extends BorderPane
 	private void onEndianessSelect()
 	{
 		GUIMain.instance.setEndianess(!GUIMain.instance.getEndianess());
+	}
+	
+	protected boolean openFile(File file)
+	{
+		if(!file.exists())
+			return false;
+		this.codeEditors.getTabs().add(new CodeEditorTab(file, e -> this.onEditorTabChange()));
+		return true;
 	}
 	
 	protected boolean closeAllTabs()
