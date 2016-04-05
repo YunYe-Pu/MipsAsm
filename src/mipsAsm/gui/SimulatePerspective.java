@@ -1,6 +1,7 @@
 package mipsAsm.gui;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.function.Predicate;
 
 import javafx.application.Platform;
@@ -158,14 +159,21 @@ public class SimulatePerspective extends BorderPane
 	{
 		File f = GUIMain.instance.promptOpenBinary();
 		if(f == null) return false;
-		int[] binary = BinaryType.read(f, GUIMain.instance.getEndianess());
-		if(binary == null)
+		try
 		{
-			disassemblePrompt.showAndWait();
+			int[] binary = BinaryType.read(f, GUIMain.instance.getEndianess());
+			if(binary == null)
+			{
+				disassemblePrompt.showAndWait();
+				return false;
+			}
+			this.loadProgram(binary);
+			return true;
+		}
+		catch(IOException e)
+		{
 			return false;
 		}
-		this.loadProgram(binary);
-		return true;
 	}
 	
 	private void onQuit()

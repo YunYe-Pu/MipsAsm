@@ -1,6 +1,7 @@
 package mipsAsm.gui;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import javafx.application.Application;
@@ -153,9 +154,16 @@ public class GUIMain extends Application
 	
 	protected boolean startSimulation(File file)
 	{
-		int[] binary = BinaryType.read(file, this.endianess.get());
-		if(binary == null) return false;
-		return this.startSimulation(binary);
+		try
+		{
+			int[] binary = BinaryType.read(file, this.endianess.get());
+			if(binary == null) return false;
+			return this.startSimulation(binary);
+		}
+		catch(IOException e)
+		{
+			return false;
+		}
 	}
 	
 	protected boolean startSimulation(int[] binary)

@@ -2,6 +2,7 @@ package mipsAsm.util;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.regex.Pattern;
@@ -26,12 +27,13 @@ public enum BinaryType
 		else
 			return BIN;
 	}
+
+	private static final Pattern COE_PREFIX1 = Pattern.compile("memory_initialization_radix=16;", Pattern.CASE_INSENSITIVE);
+	private static final Pattern COE_PREFIX2 = Pattern.compile("memory_initialization_vector=", Pattern.CASE_INSENSITIVE);
+	private static final Pattern COE_VECTOR_PATTERN = Pattern.compile("[0-9A-Fa-f]{8}[,;]");
 	
-	public static int[] read(File input, boolean endianess)
+	public static int[] read(File input, boolean endianess) throws IOException
 	{
-		final Pattern coePrefix1 = Pattern.compile("memory_initialization_radix=16;", Pattern.CASE_INSENSITIVE);
-		final Pattern coePrefix2 = Pattern.compile("memory_initialization_vector=", Pattern.CASE_INSENSITIVE);
-		final Pattern coeVectorPattern = Pattern.compile("[0-9A-Fa-f]{8}[,;]");
 		ArrayList<Integer> binary = new ArrayList<>();
 		try
 		{
@@ -39,10 +41,10 @@ public enum BinaryType
 			case COE:
 			try(Scanner scanner = new Scanner(input))
 			{
-				scanner.next(coePrefix1);
-				scanner.next(coePrefix2);
-				while(scanner.hasNext(coeVectorPattern))
-					binary.add(Integer.parseUnsignedInt(scanner.next(coeVectorPattern).substring(0, 8), 16));
+				scanner.next(COE_PREFIX1);
+				scanner.next(COE_PREFIX2);
+				while(scanner.hasNext(COE_VECTOR_PATTERN))
+					binary.add(Integer.parseUnsignedInt(scanner.next(COE_VECTOR_PATTERN).substring(0, 8), 16));
 			}
 			break;
 			case HEX:
@@ -113,7 +115,7 @@ public enum BinaryType
 			break;
 			}
 		}
-		catch(Exception e)
+		catch(NumberFormatException e)
 		{
 			return null;
 		}

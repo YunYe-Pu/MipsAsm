@@ -296,17 +296,24 @@ public class EditPerspective extends BorderPane
 	{
 		File f = GUIMain.instance.promptOpenBinary();
 		if(f == null) return false;
-		int[] data = BinaryType.read(f, GUIMain.instance.getEndianess());
-		if(data == null)
+		try
 		{
-			disassemblePrompt.showAndWait();
+			int[] data = BinaryType.read(f, GUIMain.instance.getEndianess());
+			if(data == null)
+			{
+				disassemblePrompt.showAndWait();
+				return false;
+			}
+			StringBuilder str = Disassembler.disassemble(data);
+			this.codeEditors.getTabs().add(new CodeEditorTab(str.toString(), "Disassembled", e -> this.onEditorTabChange()));
+			this.codeEditors.getSelectionModel().selectLast();
+			this.onEditorTabChange();
+			return true;
+		}
+		catch(IOException e)
+		{
 			return false;
 		}
-		StringBuilder str = Disassembler.disassemble(data);
-		this.codeEditors.getTabs().add(new CodeEditorTab(str.toString(), "Disassembled", e -> this.onEditorTabChange()));
-		this.codeEditors.getSelectionModel().selectLast();
-		this.onEditorTabChange();
-		return true;
 	}
 	
 	private boolean onSimCurrentProj()

@@ -80,13 +80,13 @@ public class Main
 		System.out.println("Available options:\n" + 
 			"-h, --help           Display this help and exit.\n" +
 			"-g, --gui            Launch graphical user interface.\n" +
+			"-i, --input <files>  Specify the input source files.\n" +
+			"-o, --output <files> Specify the output file. Output type depends on the extension of the file.\n\n" +
 			"-a, --assemble       Assemble the input source files.(default)\n" +
 			"-d, --disassemble    Disassemble the input binary.\n" +
-			"-s, --simulate       Launch simulation on the input binary.\n" +
+			"-s, --simulate       Launch simulation on the input binary.\n\n" +
 			"-b, --big-endian     Configure the assembler, disassembler, and simulator as big-endian.\n" +
-			"-l, --little-endian  Configure the assembler, disassembler, and simulator as little-endian.(default)\n" +
-			"-i, --input <files>  Specify the input source files.\n" +
-			"-o, --output <files> Specify the output file. Output type depends on the extension of the file.\n"
+			"-l, --little-endian  Configure the assembler, disassembler, and simulator as little-endian.(default)"
 		);
 	}
 	
@@ -94,70 +94,73 @@ public class Main
 	{
 		switch(task) {
 		case ASSEMBLE:
-		{
 			if(input.length == 0)
 			{
 				System.out.println("No input file. Assembly terminated.");
 				return;
 			}
-			File outputFile;
-			if(output.length == 0)
-				outputFile = new File("a.coe");
-			else
-				outputFile = output[0];
-			Assembler assembler = new Assembler(System.out);
-			assembler.setEndianess(endian);
-			
-			try
-			{
-				BitStream s = assembler.assemble(input);
-				PrintWriter p;
-				switch(BinaryType.getType(outputFile)) {
-				case COE:
-					p = new PrintWriter(outputFile);
-					p.print(s.getAsCOE().toString());
-					p.close();
-					break;
-				case HEX:
-					p = new PrintWriter(outputFile);
-					p.print(s.getAsHexString().toString());
-					p.close();
-					break;
-				case BIN:
-					s.writeBinary(outputFile);
-					break;
-				}
-			}
-			catch(FileNotFoundException e)
-			{
-				System.out.println("Failed to open input file: " + e.getLocalizedMessage());
-				System.out.println("Assembly terminated.");
-				return;
-			}
-			catch(IOException e)
-			{
-				System.err.println("An I/O exception occured when writing output file: " + e.getLocalizedMessage());
-				System.out.println("Assembly terminated.");
-				return;
-			}
-		}
-		break;
+			runAssemble(input, output.length == 0? new File("a.coe"): output[0], endian);
+			break;
 		case DISASSEMBLE:
-		{
 			if(input.length == 0)
 			{
 				System.out.println("No input file. Disassembly terminated.");
 				return;
 			}
-			File outputFile;
+			runDisassemble(input, output, endian);
+			break;
+		case SIMULATE:
+			System.out.println("The command line simulation function is not yet implemented.");
+			System.out.println("Please launch GUI to use the simulation function.");
+			return;
+		}
+	}
+	
+	
+	private static void runAssemble(File[] input, File output, boolean endian)
+	{
+		Assembler assembler = new Assembler(System.out);
+		assembler.setEndianess(endian);
+		
+		try
+		{
+			BitStream s = assembler.assemble(input);
+			PrintWriter p;
+			switch(BinaryType.getType(output)) {
+			case COE:
+				p = new PrintWriter(output);
+				p.print(s.getAsCOE().toString());
+				p.close();
+				break;
+			case HEX:
+				p = new PrintWriter(output);
+				p.print(s.getAsHexString().toString());
+				p.close();
+				break;
+			case BIN:
+				s.writeBinary(output);
+				break;
+			}
+		}
+		catch(FileNotFoundException e1)
+		{
+			System.out.println("Failed to open input file: " + e1.getLocalizedMessage());
+			System.out.println("Assembly terminated.");
+		}
+		catch(IOException e2)
+		{
+			System.err.println("An I/O exception occured when writing output file: " + e2.getLocalizedMessage());
+			System.out.println("Assembly terminated.");
+		}
+	}
+	
+	private static void runDisassemble(File[] input, File[] output, boolean endian)
+	{
+		File outputFile;
+		try
+		{
 			for(int i = 0; i < input.length; i++)
 			{
-				if(!input[i].exists())
-				{
-					System.out.println("Failed to open input file: " + input[i].getName());
-					System.out.println("Disassembly terminated.");
-					return;
-				}
 				if(i >= output.length)
 					outputFile = new File(i + ".s");
 				else
@@ -166,29 +169,25 @@ public class Main
 				int[] binary = BinaryType.read(input[i], endian);
 				if(binary == null)
 				{
-					System.out.println("Unknown error occured during disassembly.");
+					System.out.println("Wrong file format for binary.");
 					System.out.println("Disassembly terminated.");
 					return;
 				}
-				try
-				{
-					PrintWriter p = new PrintWriter(outputFile);
-					p.print(Disassembler.disassemble(binary).toString());
-					p.close();
-				}
-				catch(FileNotFoundException e)
-				{
-					System.out.println("Unknown error occured during disassembly.");
-					System.out.println("Disassembly terminated.");
-					return;
-				}
+				PrintWriter p = new PrintWriter(outputFile);
+				p.print(Disassembler.disassemble(binary).toString());
+				p.close();
 			}
+			System.out.println("Disassembly successful.");
 		}
-		break;
-		case SIMULATE:
-			System.out.println("The command line simulation function is not yet implemented.");
-			System.out.println("Please launch GUI to use the simulation function.");
-			return;
+		catch(FileNotFoundException e1)
+		{
+			System.out.println("Failed to open input file: " + e1.getLocalizedMessage());
+			System.out.println("Disassembly terminated.");
+		}
+		catch(IOException e2)
+		{
+			System.out.println("An I/O exception occured when reading input file: " + e2.getLocalizedMessage());
+			System.out.println("Disassembly terminated.");
 		}
 	}
 	

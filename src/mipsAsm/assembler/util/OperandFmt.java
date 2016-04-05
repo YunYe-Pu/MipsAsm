@@ -35,7 +35,6 @@ public class OperandFmt
 	{
 		if(this.opTypes.length != ops.length)
 			throw new OpCountMismatchError(this.opTypes.length, ops.length);
-
 		
 		int i = 0;
 		for(Class<? extends Operand> t : this.opTypes)
