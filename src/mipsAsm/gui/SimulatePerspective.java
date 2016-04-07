@@ -184,7 +184,8 @@ public class SimulatePerspective extends BorderPane
 	private void onStep()
 	{
 		this.simulator.step();
-		this.outsideProgBound.set(Simulator.pcOutofRange.test(this.simulator));
+		if(!this.outsideProgBound.get())
+			this.outsideProgBound.set(Simulator.pcOutofRange.test(this.simulator));
 		this.redraw();
 	}
 	

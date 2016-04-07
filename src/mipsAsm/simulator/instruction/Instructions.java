@@ -44,10 +44,10 @@ public class Instructions
 		instructionMap[1] = new Instruction(InstructionFmt.R, OpRegimm.executor);//regimm
 
 		instructionMap[2] = new Instruction(InstructionFmt.J, (sim, p) -> //j
-			sim.scheduleAbsoluteJump(p[1] << 2, 0x0fffffff));
+			sim.scheduleAbsoluteJump(p[0] << 2, 0x0fffffff));
 
 		instructionMap[3] = new Instruction(InstructionFmt.J, (sim, p) -> {//jal
-			sim.scheduleAbsoluteJump(p[1] << 2, 0x0fffffff);
+			sim.scheduleAbsoluteJump(p[0] << 2, 0x0fffffff);
 			sim.reg.set(31, sim.getPC() + 8);
 		});
 

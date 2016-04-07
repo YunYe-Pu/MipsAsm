@@ -50,7 +50,7 @@ public class MemoryEditPane extends BorderPane
 		{
 			this.labels[0].setText("offset");
 			for(int i = 1; i < 9; i++)
-				this.labels[i].setText(Integer.toString(i - 1));
+				this.labels[i].setText(Integer.toString((i - 1) << 2, 16));
 		}
 
 		@Override

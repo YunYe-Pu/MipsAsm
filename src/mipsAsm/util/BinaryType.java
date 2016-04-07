@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
@@ -115,7 +116,7 @@ public enum BinaryType
 			break;
 			}
 		}
-		catch(NumberFormatException e)
+		catch(NumberFormatException | InputMismatchException e)
 		{
 			return null;
 		}
