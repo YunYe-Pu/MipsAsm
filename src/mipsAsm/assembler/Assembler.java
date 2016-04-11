@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Scanner;
 
-import mipsAsm.assembler.directive.Directives;
 import mipsAsm.assembler.exception.AsmError;
 import mipsAsm.assembler.exception.LabelNotDeclaredError;
 import mipsAsm.assembler.exception.LabelRedeclareError;
@@ -18,7 +17,6 @@ import mipsAsm.assembler.instruction.LinkableInstruction;
 import mipsAsm.assembler.operand.OpLabel;
 import mipsAsm.assembler.operand.Operand;
 import mipsAsm.assembler.util.AsmWarning;
-import mipsAsm.assembler.util.AsmWarningHandler;
 import mipsAsm.assembler.util.BitStream;
 import mipsAsm.assembler.util.LabelOccurence;
 import mipsAsm.assembler.util.Occurence;
@@ -30,7 +28,7 @@ import mipsAsm.assembler.util.Occurence;
  * 
  * @author YunYe Pu
  */
-public class Assembler implements AsmWarningHandler
+public class Assembler
 {
 	protected ArrayList<Instruction> instructions = new ArrayList<>();
 	protected HashMap<String, LabelOccurence> globalLabelMap = new HashMap<>();
@@ -44,6 +42,9 @@ public class Assembler implements AsmWarningHandler
 	
 	protected PrintStream consoleOutput;
 	
+	protected boolean delaySlot;
+	protected boolean nextDelaySlot;
+	
 	public Assembler(PrintStream consoleOutput)
 	{
 		this.consoleOutput = consoleOutput;
@@ -53,6 +54,7 @@ public class Assembler implements AsmWarningHandler
 	{
 		this.instructions.clear();
 		this.globalLabelMap.clear();
+		this.delaySlot = this.nextDelaySlot = false;
 	}
 	
 	/**
@@ -126,10 +128,13 @@ public class Assembler implements AsmWarningHandler
 					{
 						Operand[] operands = new Operand[instrOperands.size()];
 						instrOperands.toArray(operands);
-						if(currMnemonic.startsWith("."))
-							Directives.getHandler(currMnemonic).handle(operands, this, fileInstruction);
-						else
-							Instructions.getParser(currMnemonic).parse(operands, this, fileInstruction);
+						this.nextDelaySlot = false;
+//						if(currMnemonic.startsWith("."))
+//							Directives.getHandler(currMnemonic).handle(operands, this, fileInstruction);
+//						else
+//							Instructions.getParser(currMnemonic).parse(operands, this, fileInstruction);
+						Instructions.getParser(currMnemonic).parse(operands, this, fileInstruction);
+						this.delaySlot = this.nextDelaySlot;
 					}
 					instrOperands.clear();
 					currMnemonic = null;
@@ -218,6 +223,16 @@ public class Assembler implements AsmWarningHandler
 		this.fileGlobalLabel.add(label);
 	}
 	
+	public void setNextDelaySlot()
+	{
+		this.nextDelaySlot = true;
+	}
+	
+	public boolean isInDelaySlot()
+	{
+		return this.delaySlot;
+	}
+	
 	/**
 	 * Used to determine the byte ordering of instructions and directives.
 	 * @return false for little-endian, true for big-endian.
@@ -232,8 +247,7 @@ public class Assembler implements AsmWarningHandler
 		this.endianess = endianess;
 	}
 	
-	@Override
-	public void handleWarning(AsmWarning e)
+	public void handleWarning(AsmWarning e) throws AsmError
 	{
 		this.consoleOutput.printf("Warning in file %s, line %d: %s\n", currProcessing.fileName, currProcessing.lineNum, e.getType());
 		this.consoleOutput.println(e.getMessage());

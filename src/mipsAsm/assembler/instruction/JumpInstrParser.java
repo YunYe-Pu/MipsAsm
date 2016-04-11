@@ -2,6 +2,7 @@ package mipsAsm.assembler.instruction;
 
 import java.util.ArrayList;
 
+import mipsAsm.assembler.Assembler;
 import mipsAsm.assembler.exception.AsmError;
 import mipsAsm.assembler.exception.OpCountMismatchError;
 import mipsAsm.assembler.exception.OpTypeMismatchError;
@@ -11,7 +12,6 @@ import mipsAsm.assembler.operand.OpLabel;
 import mipsAsm.assembler.operand.OpRegister;
 import mipsAsm.assembler.operand.Operand;
 import mipsAsm.assembler.util.AsmWarning;
-import mipsAsm.assembler.util.AsmWarningHandler;
 import mipsAsm.assembler.util.InstructionFmt;
 import mipsAsm.assembler.util.LinkType;
 
@@ -30,19 +30,21 @@ public enum JumpInstrParser implements InstructionParser
 	}
 	
 	@Override
-	public void parse(Operand[] operands, AsmWarningHandler warningHandler, ArrayList<Instruction> instrList) throws AsmError
+	public void parse(Operand[] operands, Assembler assembler, ArrayList<Instruction> instrList) throws AsmError
 	{
+		if(assembler.isInDelaySlot())
+			assembler.handleWarning(new AsmWarning("Delay slot misuse", "A jump instruction is placed in the delay slot of another instruction."));
 		if(operands.length != 1)
 			throw new OpCountMismatchError(1, operands.length);
 		
 		if(operands[0] instanceof OpImmediate)
 		{
 			AsmWarning w = new AsmWarning("Deprecated operand", "Providing an immediate for operand 1 is deprecated as it might be incorrect.");
-			warningHandler.handleWarning(w);
-			instrList.add(InstructionFmt.J.newInstance(data[0], operands.clone(), null, warningHandler));
+			assembler.handleWarning(w);
+			instrList.add(InstructionFmt.J.newInstance(data[0], operands.clone(), null, assembler));
 		}
 		else if(operands[0] instanceof OpLabel)
-			instrList.add(InstructionFmt.J.newInstance(data[0], operands.clone(), LinkType.ABSOLUTE_WORD, warningHandler));
+			instrList.add(InstructionFmt.J.newInstance(data[0], operands.clone(), LinkType.ABSOLUTE_WORD, assembler));
 		else if(operands[0] instanceof OpRegister)
 		{
 			Operand[] ops = new Operand[5];
@@ -51,10 +53,11 @@ public enum JumpInstrParser implements InstructionParser
 			ops[2] = new OpConstant(data[2]);
 			ops[3] = new OpConstant(data[3]);
 			ops[4] = new OpConstant(data[4]);
-			instrList.add(InstructionFmt.R.newInstance(0, ops, null, warningHandler));
+			instrList.add(InstructionFmt.R.newInstance(0, ops, null, assembler));
 		}
 		else
 			throw new OpTypeMismatchError(0,Operand.getTypeName(operands[0]), "register, immediate, or label");
+		assembler.setNextDelaySlot();
 	}
 	
 }

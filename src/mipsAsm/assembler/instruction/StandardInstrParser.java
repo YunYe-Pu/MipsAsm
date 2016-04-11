@@ -2,10 +2,10 @@ package mipsAsm.assembler.instruction;
 
 import java.util.ArrayList;
 
+import mipsAsm.assembler.Assembler;
 import mipsAsm.assembler.exception.AsmError;
 import mipsAsm.assembler.operand.OpConstant;
 import mipsAsm.assembler.operand.Operand;
-import mipsAsm.assembler.util.AsmWarningHandler;
 import mipsAsm.assembler.util.InstructionFmt;
 import mipsAsm.assembler.util.OperandFmt;
 
@@ -121,7 +121,7 @@ public enum StandardInstrParser implements InstructionParser
 	}
 	
 	@Override
-	public void parse(Operand[] operands, AsmWarningHandler warningHandler, ArrayList<Instruction> instrList) throws AsmError
+	public void parse(Operand[] operands, Assembler assembler, ArrayList<Instruction> instrList) throws AsmError
 	{
 		this.operandFormat.matches(operands);
 		Operand[] ops = new Operand[this.fields.length];
@@ -133,7 +133,7 @@ public enum StandardInstrParser implements InstructionParser
 				ops[i] = new OpConstant(this.fields[i]);
 		}
 
-		instrList.add(this.instrFormat.newInstance(this.opCode, ops, null, warningHandler));
+		instrList.add(this.instrFormat.newInstance(this.opCode, ops, null, assembler));
 	}
 
 	

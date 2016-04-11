@@ -2,11 +2,11 @@ package mipsAsm.assembler.instruction;
 
 import java.util.ArrayList;
 
+import mipsAsm.assembler.Assembler;
 import mipsAsm.assembler.exception.AsmError;
 import mipsAsm.assembler.operand.OpImmediate;
 import mipsAsm.assembler.operand.OpRegister;
 import mipsAsm.assembler.operand.Operand;
-import mipsAsm.assembler.util.AsmWarningHandler;
 
 /**
  * The instruction parsers for R-type and I-type paired instructions, like ADD and ADDI.
@@ -58,14 +58,14 @@ public enum RIPairedInstrParser implements InstructionParser
 	}
 
 	@Override
-	public void parse(Operand[] operands, AsmWarningHandler warningHandler, ArrayList<Instruction> instrList) throws AsmError
+	public void parse(Operand[] operands, Assembler assembler, ArrayList<Instruction> instrList) throws AsmError
 	{
 		if(operands.length != this.opCount)
 			throw new AsmError("Operand mismatch", "Expected " + this.opCount + " operand(s) but provided " + operands.length + ".");
 		else if(operands[this.opIndex] instanceof OpRegister)
-			this.parser1.parse(operands, warningHandler, instrList);
+			this.parser1.parse(operands, assembler, instrList);
 		else if(operands[this.opIndex] instanceof OpImmediate)
-			this.parser2.parse(operands, warningHandler, instrList);
+			this.parser2.parse(operands, assembler, instrList);
 		else
 			throw new AsmError("Operand mismatch", "Expected register or immediate for operand " + (this.opIndex + 1) + " but provided " + Operand.getTypeName(operands[this.opIndex].getClass()) + ".");
 	}

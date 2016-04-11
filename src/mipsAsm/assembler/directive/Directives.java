@@ -1,12 +1,12 @@
 package mipsAsm.assembler.directive;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import mipsAsm.assembler.Assembler;
 import mipsAsm.assembler.exception.AsmError;
 import mipsAsm.assembler.exception.OpTypeMismatchError;
 import mipsAsm.assembler.instruction.Instruction;
+import mipsAsm.assembler.instruction.InstructionParser;
 import mipsAsm.assembler.operand.OpImmediate;
 import mipsAsm.assembler.operand.OpLabel;
 import mipsAsm.assembler.operand.OpString;
@@ -15,7 +15,7 @@ import mipsAsm.assembler.util.AsmWarning;
 
 public class Directives
 {
-	public static final DirectiveHandler ASCIIZ = (operands, assembler, instructionList) ->
+	public static final InstructionParser ASCIIZ = (operands, assembler, instructionList) ->
 	{
 		int opIndex = 0;
 		int charIndex = 0;
@@ -44,7 +44,7 @@ public class Directives
 		instructionList.add(new DataInstruction(value));
 	};
 	
-	public static final DirectiveHandler GLOBl = (operands, assembler, instructionList) ->
+	public static final InstructionParser GLOBl = (operands, assembler, instructionList) ->
 	{
 		int opIndex = 0;
 		for(Operand op : operands)
@@ -55,17 +55,17 @@ public class Directives
 		}
 	};
 
-	private static class BinaryHandler implements DirectiveHandler
+	public static class BinaryHandler implements InstructionParser
 	{
 		private final int width;
 		
-		private BinaryHandler(int width)
+		public BinaryHandler(int width)
 		{
 			this.width = width;
 		}
 		
 		@Override
-		public void handle(Operand[] operands, Assembler assembler, ArrayList<Instruction> instructionList) throws AsmError
+		public void parse(Operand[] operands, Assembler assembler, ArrayList<Instruction> instructionList) throws AsmError
 		{
 //			int count = 0;
 //			int value = 0;
@@ -115,26 +115,7 @@ public class Directives
 			if(shift != 0)
 				instructionList.add(new DataInstruction(value));
 		}
-		
 	}
 	
-	private static final HashMap<String, DirectiveHandler> handlerMap = new HashMap<>();
-	
-	static
-	{
-		handlerMap.put(".asciiz", ASCIIZ);
-		handlerMap.put(".globl", GLOBl);
-		handlerMap.put(".byte", new BinaryHandler(8));
-		handlerMap.put(".half", new BinaryHandler(16));
-		handlerMap.put(".word", new BinaryHandler(32));
-	}
-	
-	public static DirectiveHandler getHandler(String directiveName) throws AsmError
-	{
-		DirectiveHandler handler = handlerMap.get(directiveName);
-		if(handler == null)
-			throw new AsmError("Unknown directive", "Unknown directive \"" + directiveName + "\".");
-		return handler;
-	}
 	
 }

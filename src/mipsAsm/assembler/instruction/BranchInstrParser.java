@@ -2,6 +2,7 @@ package mipsAsm.assembler.instruction;
 
 import java.util.ArrayList;
 
+import mipsAsm.assembler.Assembler;
 import mipsAsm.assembler.exception.AsmError;
 import mipsAsm.assembler.exception.OpCountMismatchError;
 import mipsAsm.assembler.exception.OpTypeMismatchError;
@@ -11,7 +12,6 @@ import mipsAsm.assembler.operand.OpLabel;
 import mipsAsm.assembler.operand.OpRegister;
 import mipsAsm.assembler.operand.Operand;
 import mipsAsm.assembler.util.AsmWarning;
-import mipsAsm.assembler.util.AsmWarningHandler;
 import mipsAsm.assembler.util.InstructionFmt;
 import mipsAsm.assembler.util.LinkType;
 
@@ -63,9 +63,11 @@ public enum BranchInstrParser implements InstructionParser
 	}
 	
 	@Override
-	public void parse(Operand[] operands, AsmWarningHandler warningHandler, ArrayList<Instruction> instrList) throws AsmError
+	public void parse(Operand[] operands, Assembler assembler, ArrayList<Instruction> instrList) throws AsmError
 	{
-		this.checkOpType(operands, warningHandler);
+		if(assembler.isInDelaySlot())
+			assembler.handleWarning(new AsmWarning("Delay slot misuse", "A branch instruction is placed in the delay slot of another instruction."));
+		this.checkOpType(operands, assembler);
 		Operand[] ops = new Operand[this.fields.length];
 		for(int i = 0; i < this.fields.length; i++)
 		{
@@ -75,10 +77,11 @@ public enum BranchInstrParser implements InstructionParser
 				ops[i] = new OpConstant(this.fields[i]);
 		}
 		
-		instrList.add(this.instrFormat.newInstance(this.opCode, ops, this.linkType, warningHandler));
+		instrList.add(this.instrFormat.newInstance(this.opCode, ops, this.linkType, assembler));
+		assembler.setNextDelaySlot();
 	}
 	
-	private void checkOpType(Operand[] operands, AsmWarningHandler warningHandler) throws AsmError
+	private void checkOpType(Operand[] operands, Assembler warningHandler) throws AsmError
 	{
 		if(operands.length != this.regCount + 1)
 			throw new OpCountMismatchError(this.regCount + 1, operands.length);

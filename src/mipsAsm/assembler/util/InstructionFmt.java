@@ -2,6 +2,7 @@ package mipsAsm.assembler.util;
 
 import java.util.HashMap;
 
+import mipsAsm.assembler.Assembler;
 import mipsAsm.assembler.exception.AsmError;
 import mipsAsm.assembler.instruction.Instruction;
 import mipsAsm.assembler.instruction.LinkableInstruction;
@@ -34,17 +35,17 @@ public class InstructionFmt
 	 * @param op Operands of the instruction.
 	 * @param linkType The link type of the instruction. Provide null to obtain an unlinkable instruction,
 	 * 	or an instance to obtain a linkable instruction.
-	 * @param handler The warning handler.
+	 * @param warningHandler The assembler to handle the warning.
 	 * @return The new instruction generated.
 	 * @throws AsmError
 	 */
-	public Instruction newInstance(int opCode, Operand[] op, LinkType linkType, AsmWarningHandler handler) throws AsmError
+	public Instruction newInstance(int opCode, Operand[] op, LinkType linkType, Assembler warningHandler) throws AsmError
 	{
 		for(int i = 0; i < this.fieldLength.length; i++)
 		{
 			AsmWarning e = op[i].setWidth(this.fieldLength[i]);
 			if(e != null)
-				handler.handleWarning(e);
+				warningHandler.handleWarning(e);
 		}
 		if(linkType == null)
 			return new StdInstr(opCode, op);
