@@ -37,7 +37,7 @@ public final class Instructions
 		mnemonicMap.put(".byte", new Directives.BinaryHandler(8));
 		mnemonicMap.put(".half", new Directives.BinaryHandler(16));
 		mnemonicMap.put(".word", new Directives.BinaryHandler(32));
-
+		mnemonicMap.put(".space", Directives.SPACE);
 	}
 	
 	public static InstructionParser put(String key, InstructionParser value)

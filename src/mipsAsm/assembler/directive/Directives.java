@@ -12,6 +12,7 @@ import mipsAsm.assembler.operand.OpLabel;
 import mipsAsm.assembler.operand.OpString;
 import mipsAsm.assembler.operand.Operand;
 import mipsAsm.assembler.util.AsmWarning;
+import mipsAsm.assembler.util.OperandFmt;
 
 public class Directives
 {
@@ -53,6 +54,17 @@ public class Directives
 				throw new OpTypeMismatchError(opIndex, op, OpLabel.class);
 			assembler.addGlobalLabel(((OpLabel)op).labelName);
 		}
+	};
+	
+	public static final InstructionParser SPACE = (operands, assembler, instructionList) ->
+	{
+		OperandFmt.I.matches(operands);
+		int i = operands[0].getEncoding();
+		if(i <= 0)
+			assembler.handleWarning(new AsmWarning("Non-positive spacing", "Provided a non-positive number of spacing."));
+		Instruction inst = new DataInstruction(0);
+		while(i-- > 0)
+			instructionList.add(inst);
 	};
 
 	public static class BinaryHandler implements InstructionParser
