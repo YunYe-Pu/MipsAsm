@@ -63,7 +63,7 @@ public enum StandardInstrParser implements InstructionParser
 	SC      (InstructionFmt.I, OperandFmt.RIR, 0x38, -3, -1, -2),
 	SDBBP   (InstructionFmt.F20_6, OperandFmt.I, 0x1c, -1, 0x3f),
 	SH      (InstructionFmt.I, OperandFmt.RIR, 0x29, -3, -1, -2),
-	SLL     (InstructionFmt.R, OperandFmt.RRI, 0x00, 0, -2, -1, -3, 0x25),
+	SLL     (InstructionFmt.R, OperandFmt.RRI, 0x00, 0, -2, -1, -3, 0x00),
 	SLLV    (InstructionFmt.R, OperandFmt.R3 , 0x00, -3, -2, -1, 0, 0x04),
 	SLT     (InstructionFmt.R, OperandFmt.R3 , 0x00, -2, -3, -1, 0, 0x2a),
 	SLTI    (InstructionFmt.I, OperandFmt.RRI, 0x0a, -2, -1, -3),
@@ -97,7 +97,7 @@ public enum StandardInstrParser implements InstructionParser
 	XORI    (InstructionFmt.I, OperandFmt.RRI, 0x0e, -2, -1, -3),
 	
 	MOVE    (InstructionFmt.R, OperandFmt.RR , 0x00, -2, 0, -1, 0, 0x25),//implement with OR, as GNU assembler does.
-	NOT     (InstructionFmt.R, OperandFmt.RR , 0x00, -2, 0, -1, 0x27),//implement with NOR
+	NOT     (InstructionFmt.R, OperandFmt.RR , 0x00, -2, 0, -1, 0, 0x27),//implement with NOR
 	;
 
 	private final InstructionFmt instrFormat;

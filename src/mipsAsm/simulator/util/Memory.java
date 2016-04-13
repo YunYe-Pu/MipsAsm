@@ -44,21 +44,19 @@ public class Memory
 		this.endianess = 0;
 	}
 	
-	public void loadProgram(int[] programData, int offset)
+	public void loadProgram(int[] programData)
 	{
 		int i;
 		int[] page = new int[1024];
-		this.pages.put(offset >> 12, page);
-		for(i = 0; i < (offset & 0x3ff); i++)
-			page[i] = 0;
+		this.pages.put(0, page);
 		
-		for(i = offset; i < programData.length + offset; i++)
+		for(i = 0; i < programData.length; i++)
 		{
-			page[i & 0x3ff] = programData[i - offset];
+			page[i & 0x3ff] = programData[i];
 			if((i & 0x3ff) == 0x3ff)
 			{
 				page = new int[1024];
-				this.pages.put(i >> 12, page);
+				this.pages.put((i + 1) >> 12, page);
 			}
 		}
 		for(i &= 0x3ff; i < 1024; i++)

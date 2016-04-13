@@ -2,6 +2,7 @@ package mipsAsm.gui;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import javafx.application.Platform;
@@ -19,6 +20,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
@@ -52,6 +54,13 @@ public class SimulatePerspective extends BorderPane
 	private static final Alert disassemblePrompt = new Alert(AlertType.ERROR, "Wrong file format for binary.", ButtonType.OK);
 	private static final Alert simPrompt = new Alert(AlertType.INFORMATION, "Program counter has reached the boundary of program data."
 			+ " The run operation will be unavailable from now on.", ButtonType.OK);
+	private static final TextInputDialog offsetInputDialog = new TextInputDialog("0");
+
+	static
+	{
+		offsetInputDialog.setTitle("Enter initial PC");
+		offsetInputDialog.setHeaderText("Input the initial program counter,\nin hexadecimal word address:");
+	}
 	
 	public SimulatePerspective()
 	{
@@ -130,14 +139,26 @@ public class SimulatePerspective extends BorderPane
 		
 	}
 	
-	protected void loadProgram(int[] program)
+	protected boolean loadProgram(int[] program)
 	{
-		if(this.simulatorThread != null) return;
-		this.simulator.loadProgram(program, 0);
+		if(this.simulatorThread != null) return false;
+		Optional<String> result = offsetInputDialog.showAndWait();
+		if(!result.isPresent()) return false;
+		int offset = 0;
+		try
+		{
+			offset = Integer.parseUnsignedInt(result.get(), 16);
+		}
+		catch(NumberFormatException e)
+		{
+			offset = 0;
+		}
+		this.simulator.loadProgram(program, offset);
 		this.outsideProgBound.set(Simulator.pcOutofRange.test(this.simulator));
 		
 		this.disassemblyContent.setText(Disassembler.disassemble(program).toString());
 		this.redraw();
+		return true;
 	}
 	
 	private void redraw()
@@ -167,8 +188,7 @@ public class SimulatePerspective extends BorderPane
 				disassemblePrompt.showAndWait();
 				return false;
 			}
-			this.loadProgram(binary);
-			return true;
+			return this.loadProgram(binary);
 		}
 		catch(IOException e)
 		{

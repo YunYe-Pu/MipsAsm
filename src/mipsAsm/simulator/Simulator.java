@@ -19,12 +19,12 @@ public class Simulator
 	public int regLO = 0;
 
 	private int[] programData;
-	private int programOffset;
+	private int initPC;
 	private SimulatorException pendingException;
 	
 	public static final Predicate<Simulator> pcOutofRange = sim -> {
-		return sim.programCounter < sim.programOffset || 
-			sim.programCounter >= sim.programOffset + (sim.programData.length << 2);
+		return sim.programCounter < sim.initPC || 
+			sim.programCounter >= (sim.programData.length << 2);
 	};
 	
 	public static final Predicate<Simulator> exceptionOccur = sim -> sim.pendingException != null;
@@ -42,18 +42,18 @@ public class Simulator
 	{
 		this.reg.clear();
 		this.mem.clear();
-		this.mem.loadProgram(this.programData, this.programOffset);
-		this.programCounter = this.programOffset;
+		this.mem.loadProgram(this.programData);
+		this.programCounter = this.initPC;
 		this.scheduledPC[0] = this.programCounter + 4;
 		this.scheduledPC[1] = this.programCounter + 8;
 		this.currInstr = this.programData[0];
 		this.pendingException = null;
 	}
 	
-	public void loadProgram(int[] programData, int offset)
+	public void loadProgram(int[] programData, int initPC)
 	{
 		this.programData = programData;
-		this.programOffset = offset & -4;
+		this.initPC = initPC << 2;
 		this.resetSimProgress();
 	}
 	

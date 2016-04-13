@@ -168,7 +168,8 @@ public class GUIMain extends Application
 	
 	protected boolean startSimulation(int[] binary)
 	{
-		this.simPane.loadProgram(binary);
+		if(!this.simPane.loadProgram(binary))
+			return false;
 		this.scene.setRoot(this.simPane);
 		this.primaryStage.setTitle("MIPS Assembler IDE - Simulation");
 		return true;
