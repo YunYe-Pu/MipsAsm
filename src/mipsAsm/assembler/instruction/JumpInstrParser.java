@@ -56,7 +56,7 @@ public enum JumpInstrParser implements InstructionParser
 			instrList.add(InstructionFmt.R.newInstance(0, ops, null, assembler));
 		}
 		else
-			throw new OpTypeMismatchError(0,Operand.getTypeName(operands[0]), "register, immediate, or label");
+			throw new OpTypeMismatchError(0, Operand.getTypeName(operands[0]), "register, immediate, or label");
 		assembler.setNextDelaySlot();
 	}
 	

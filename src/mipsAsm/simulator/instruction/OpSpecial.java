@@ -41,10 +41,10 @@ public final class OpSpecial
 		executors[7] = (sim, p) -> //srav
 			sim.reg.set(p[2], sim.reg.get(p[1]) >> (sim.reg.get(p[0]) & 31));
 		
-		executors[8] = (sim, p) -> //jr TODO
+		executors[8] = (sim, p) -> //jr
 			sim.scheduleAbsoluteJump(sim.reg.get(p[0]), 0xffffffff);
 		
-		executors[9] = (sim, p) -> {//jalr TODO
+		executors[9] = (sim, p) -> {//jalr
 			sim.reg.set(p[2], sim.getPC() + 8);
 			sim.scheduleAbsoluteJump(sim.reg.get(p[0]), 0xffffffff);
 		};
