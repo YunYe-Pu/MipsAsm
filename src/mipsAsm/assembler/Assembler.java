@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Scanner;
 
+import mipsAsm.assembler.directive.Directives;
 import mipsAsm.assembler.exception.AsmError;
 import mipsAsm.assembler.exception.LabelNotDeclaredError;
 import mipsAsm.assembler.exception.LabelRedeclareError;
@@ -129,11 +130,10 @@ public class Assembler
 						Operand[] operands = new Operand[instrOperands.size()];
 						instrOperands.toArray(operands);
 						this.nextDelaySlot = false;
-//						if(currMnemonic.startsWith("."))
-//							Directives.getHandler(currMnemonic).handle(operands, this, fileInstruction);
-//						else
-//							Instructions.getParser(currMnemonic).parse(operands, this, fileInstruction);
-						Instructions.getParser(currMnemonic).parse(operands, this, fileInstruction);
+						if(currMnemonic.startsWith("."))
+							Directives.getHandler(currMnemonic).parse(operands, this, fileInstruction);
+						else
+							Instructions.getParser(currMnemonic).parse(operands, this, fileInstruction);
 						this.delaySlot = this.nextDelaySlot;
 					}
 					instrOperands.clear();

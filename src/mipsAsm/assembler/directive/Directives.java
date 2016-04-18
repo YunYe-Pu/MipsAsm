@@ -1,6 +1,7 @@
 package mipsAsm.assembler.directive;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import mipsAsm.assembler.Assembler;
 import mipsAsm.assembler.exception.AsmError;
@@ -129,5 +130,25 @@ public class Directives
 		}
 	}
 	
+	private static final HashMap<String, InstructionParser> handlerMap = new HashMap<>();
+	
+	static
+	{
+		handlerMap.put(".asciiz", Directives.ASCIIZ);
+		handlerMap.put(".globl", Directives.GLOBl);
+		handlerMap.put(".byte", new Directives.BinaryHandler(8));
+		handlerMap.put(".half", new Directives.BinaryHandler(16));
+		handlerMap.put(".word", new Directives.BinaryHandler(32));
+		handlerMap.put(".space", Directives.SPACE);
+	}
+	
+	public static InstructionParser getHandler(String directiveName) throws AsmError
+	{
+		InstructionParser ret = handlerMap.get(directiveName);
+		if(ret == null)
+			throw new AsmError("Unknown directive", "Unknown directive \"" + directiveName + "\".");
+		else
+			return ret;
+	}	
 	
 }

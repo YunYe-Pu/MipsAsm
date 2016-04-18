@@ -2,7 +2,6 @@ package mipsAsm.assembler.instruction;
 
 import java.util.HashMap;
 
-import mipsAsm.assembler.directive.Directives;
 import mipsAsm.assembler.exception.AsmError;
 import mipsAsm.assembler.instruction.macro.LambdaMacros;
 
@@ -31,13 +30,6 @@ public final class Instructions
 		
 		mnemonicMap.put("li", LambdaMacros.LI);
 		mnemonicMap.put("la", LambdaMacros.LA);
-		
-		mnemonicMap.put(".asciiz", Directives.ASCIIZ);
-		mnemonicMap.put(".globl", Directives.GLOBl);
-		mnemonicMap.put(".byte", new Directives.BinaryHandler(8));
-		mnemonicMap.put(".half", new Directives.BinaryHandler(16));
-		mnemonicMap.put(".word", new Directives.BinaryHandler(32));
-		mnemonicMap.put(".space", Directives.SPACE);
 	}
 	
 	public static InstructionParser put(String key, InstructionParser value)
