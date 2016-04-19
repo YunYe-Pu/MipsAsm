@@ -55,7 +55,7 @@ public class CodeEditorTab extends Tab
 			if(e.getCode().isFunctionKey())
 				this.textArea.getParent().fireEvent(e);
 		});
-		this.textArea.fontProperty().bind(GUIMain.instance.editorFont());
+		this.textArea.fontProperty().bind(GUIMain.instance.editorFont);
 	}
 	
 	/**
@@ -80,7 +80,7 @@ public class CodeEditorTab extends Tab
 			if(e.getCode().isFunctionKey())
 				this.textArea.getParent().fireEvent(e);
 		});
-		this.textArea.fontProperty().bind(GUIMain.instance.editorFont());
+		this.textArea.fontProperty().bind(GUIMain.instance.editorFont);
 	}
 	
 	private void _save()
@@ -91,6 +91,7 @@ public class CodeEditorTab extends Tab
 			p.print(this.textArea.getText());
 			this.lastSavedContent = this.textArea.getText();
 			this.setText(this.file.getName());
+			this.onTabChange.handle(null);
 			p.close();
 		}
 		catch(FileNotFoundException e)

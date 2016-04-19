@@ -39,7 +39,7 @@ public abstract class EditableHexWordGrid extends GridPane
 			}
 			this.labels[i].setMinSize(cellWidth, cellHeight);
 			this.labels[i].setAlignment(Pos.CENTER);
-			this.labels[i].fontProperty().bind(GUIMain.instance.editorFont());
+			this.labels[i].fontProperty().bind(GUIMain.instance.editorFont);
 			this.add(this.labels[i], i % columns, i / columns);
 		}
 
@@ -47,7 +47,7 @@ public abstract class EditableHexWordGrid extends GridPane
 		this.editText.setPrefSize(cellWidth, cellHeight);
 		this.editText.setVisible(false);
 		this.editText.setOnKeyPressed(e -> this.onTextKeyPressed(e));
-		this.editText.fontProperty().bind(GUIMain.instance.editorFont());
+		this.editText.fontProperty().bind(GUIMain.instance.editorFont);
 		this.setHgap(hGap);
 		this.setVgap(vGap);
 		

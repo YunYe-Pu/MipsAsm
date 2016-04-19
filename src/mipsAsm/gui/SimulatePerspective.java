@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import javafx.application.Platform;
+import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Insets;
 import javafx.scene.control.Alert;
@@ -76,7 +77,7 @@ public class SimulatePerspective extends BorderPane
 		for(int i = 0; i < 5; i++)
 		{
 			this.sidePaneLabels[i] = new Label();
-			this.sidePaneLabels[i].fontProperty().bind(GUIMain.instance.editorFont());
+			this.sidePaneLabels[i].fontProperty().bind(GUIMain.instance.editorFont);
 		}
 		this.sidePane = new VBox(this.sidePaneLabels);
 		this.sidePane.setPadding(new Insets(10, 10, 10, 10));
@@ -88,24 +89,24 @@ public class SimulatePerspective extends BorderPane
 		this.bottomPane.getTabs().addAll(new Tab("Memory", this.memPane), new Tab("Register", this.regPane));
 		
 		this.disassemblyContent = new TextArea();
-		this.disassemblyContent.fontProperty().bind(GUIMain.instance.editorFont());
+		this.disassemblyContent.fontProperty().bind(GUIMain.instance.editorFont);
 		this.disassemblyContent.setEditable(false);
 		this.disassemblyContent.setOnKeyPressed(e -> {
 			if(e.getCode().isFunctionKey())
 				this.fireEvent(e);
 		});
 		
-		GUIMain.instance.endianess().addListener((e, oldVal, newVal) -> this.simulator.mem.setEndianess(newVal));
-		GUIMain.instance.endianess().addListener((e, oldVal, newVal) -> this.menuItems[2][0].setText(newVal? "Endian:big": "Endian:little"));
+		GUIMain.instance.endianess.addListener((e, oldVal, newVal) -> this.simulator.mem.setEndianess(newVal));
+		GUIMain.instance.endianess.addListener((e, oldVal, newVal) -> this.menuItems[2][0].setText(newVal? "Endian:big": "Endian:little"));
 
 		this.outsideProgBound.addListener((e, oldVal, newVal) -> { if(!oldVal && newVal) simPrompt.showAndWait(); });
-		this.menuItems[1][1].disableProperty().bind(this.outsideProgBound.or(this.simRunning));
-		this.menuItems[0][0].disableProperty().bind(this.simRunning);
-		this.menuItems[0][2].disableProperty().bind(this.simRunning);
-		this.menuItems[1][0].disableProperty().bind(this.simRunning);
-		this.menuItems[1][2].disableProperty().bind(this.simRunning.not());
-		this.menuItems[1][4].disableProperty().bind(this.simRunning);
-		this.menuItems[2][0].disableProperty().bind(this.simRunning);
+//		this.menuItems[1][1].disableProperty().bind(this.outsideProgBound.or(this.simRunning));
+//		this.menuItems[0][0].disableProperty().bind(this.simRunning);
+//		this.menuItems[0][2].disableProperty().bind(this.simRunning);
+//		this.menuItems[1][0].disableProperty().bind(this.simRunning);
+//		this.menuItems[1][2].disableProperty().bind(this.simRunning.not());
+//		this.menuItems[1][4].disableProperty().bind(this.simRunning);
+//		this.menuItems[2][0].disableProperty().bind(this.simRunning);
 		
 		this.setTop(this.menuBar);
 		this.setCenter(this.disassemblyContent);
@@ -116,23 +117,25 @@ public class SimulatePerspective extends BorderPane
 	
 	private void buildMenus()
 	{
+		BooleanExpression b1 = GUIMain.instance.editDisplayed;
+		BooleanExpression b2 = b1.or(this.simRunning);
 		this.menuItems[0] = new MenuItem[3];
-		this.menuItems[0][0] = MenuHelper.item("Open", e -> this.onOpen(), "O", KeyCombination.SHORTCUT_DOWN);
+		this.menuItems[0][0] = MenuHelper.item("Open", e -> this.onOpen(), b2, "O", KeyCombination.SHORTCUT_DOWN);
 		this.menuItems[0][1] = new SeparatorMenuItem();
-		this.menuItems[0][2] = MenuHelper.item("Quit", e -> this.onQuit(), "Q", KeyCombination.SHORTCUT_DOWN);
+		this.menuItems[0][2] = MenuHelper.item("Quit", e -> this.onQuit(), b2, "Q", KeyCombination.SHORTCUT_DOWN);
 		this.menus[0] = MenuHelper.menu("File", this.menuItems[0], "F");
 		
 		this.menuItems[1] = new MenuItem[5];
-		this.menuItems[1][0] = MenuHelper.item("Step", e -> this.onStep(), KeyCode.F5);
-		this.menuItems[1][1] = MenuHelper.item("Run", e -> this.onRun(), KeyCode.F6);
-		this.menuItems[1][2] = MenuHelper.item("Stop", e -> this.onStop(), KeyCode.F7);
-		this.menuItems[1][2].setDisable(true);
+		this.menuItems[1][0] = MenuHelper.item("Step", e -> this.onStep(), b2, KeyCode.F5);
+		this.menuItems[1][1] = MenuHelper.item("Run", e -> this.onRun(), b2.or(this.outsideProgBound), KeyCode.F6);
+		this.menuItems[1][2] = MenuHelper.item("Stop", e -> this.onStop(), b1.or(this.simRunning.not()), KeyCode.F7);
+//		this.menuItems[1][2].setDisable(true);
 		this.menuItems[1][3] = new SeparatorMenuItem();
-		this.menuItems[1][4] = MenuHelper.item("Restart", e -> this.onRestart(), "R", KeyCombination.SHORTCUT_DOWN);
+		this.menuItems[1][4] = MenuHelper.item("Restart", e -> this.onRestart(), b2, "R", KeyCombination.SHORTCUT_DOWN);
 		this.menus[1] = MenuHelper.menu("Simulate", this.menuItems[1], "S");
 		
 		this.menuItems[2] = new MenuItem[1];
-		this.menuItems[2][0] = MenuHelper.item("Endian:little", e -> this.onEndianessSelect());
+		this.menuItems[2][0] = MenuHelper.item("Endian:little", e -> this.onEndianessSelect(), b2);
 		this.menus[2] = MenuHelper.menu("Options", this.menuItems[2], "O");
 		
 		this.menuBar.getMenus().addAll(this.menus);
@@ -182,7 +185,7 @@ public class SimulatePerspective extends BorderPane
 		if(f == null) return false;
 		try
 		{
-			int[] binary = BinaryType.read(f, GUIMain.instance.getEndianess());
+			int[] binary = BinaryType.read(f, GUIMain.instance.endianess.get());
 			if(binary == null)
 			{
 				disassemblePrompt.showAndWait();
@@ -239,7 +242,7 @@ public class SimulatePerspective extends BorderPane
 	
 	private void onEndianessSelect()
 	{
-		GUIMain.instance.setEndianess(!GUIMain.instance.getEndianess());
+		GUIMain.instance.endianess.set(!GUIMain.instance.endianess.get());
 	}
 	
 	private class SimThread extends Thread

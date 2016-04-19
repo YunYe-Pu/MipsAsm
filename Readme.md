@@ -6,6 +6,8 @@ The assembler, disassembler and simulator is based on "MIPS32 Architecture for P
 
 The graphical user interface is powered by javaFX.
 
+Executables on Windows and Linux platforms are packaged by launch4j. Command line interface is unavailable from packaged executables.
+
 ##Assembler
 
 The assembler is capable of assembling multiple source files and generate one binary file. No object files are generated during assembly.

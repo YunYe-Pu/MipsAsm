@@ -5,8 +5,7 @@ import java.io.IOException;
 import java.util.List;
 
 import javafx.application.Application;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ObjectProperty;
+import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Scene;
@@ -23,8 +22,10 @@ public class GUIMain extends Application
 	private static File[] initialFile;
 	private static boolean initialEndian;
 
-	private final SimpleBooleanProperty endianess;
-	private final SimpleObjectProperty<Font> editorFont;
+	protected final SimpleBooleanProperty endianess;
+	protected final SimpleObjectProperty<Font> editorFont;
+	protected final SimpleBooleanProperty editDisplayed;
+	protected final BooleanExpression simDisplayed;
 	
 	private final Scene scene;
 	private final EditPerspective editPane;
@@ -46,6 +47,9 @@ public class GUIMain extends Application
 		this.fileChooser = new FileChooser();
 		this.endianess = new SimpleBooleanProperty();
 		this.editorFont = new SimpleObjectProperty<Font>(Font.font("Courier New"));
+		this.editDisplayed = new SimpleBooleanProperty(true);
+		this.simDisplayed = this.editDisplayed.not();
+		
 		this.editPane = new EditPerspective();
 		this.simPane = new SimulatePerspective();
 		this.scene = new Scene(this.editPane);
@@ -66,8 +70,7 @@ public class GUIMain extends Application
 			for(File f : initialFile)
 				this.editPane.openFile(f);
 		}
-		else
-			this.editPane.onEditorTabChange();
+		this.editPane.onEditorTabChange();
 		this.endianess.set(initialEndian);
 		primaryStage.show();
 	}
@@ -170,6 +173,7 @@ public class GUIMain extends Application
 	{
 		if(!this.simPane.loadProgram(binary))
 			return false;
+		this.editDisplayed.set(false);
 		this.scene.setRoot(this.simPane);
 		this.primaryStage.setTitle("MIPS Assembler IDE - Simulation");
 		return true;
@@ -177,40 +181,11 @@ public class GUIMain extends Application
 	
 	protected void endSimulation()
 	{
+		this.editDisplayed.set(true);
 		this.scene.setRoot(this.editPane);
 		this.editPane.onEditorTabChange();
 	}
 	
-	protected boolean getEndianess()
-	{
-		return this.endianess.get();
-	}
-	
-	protected BooleanProperty endianess()
-	{
-		return this.endianess;
-	}
-	
-	protected void setEndianess(boolean endianess)
-	{
-		this.endianess.set(endianess);
-	}
-	
-	protected Font getEditorFont()
-	{
-		return this.editorFont.get();
-	}
-	
-	protected void setEditorFont(Font newFont)
-	{
-		this.editorFont.set(newFont);
-	}
-	
-	protected ObjectProperty<Font> editorFont()
-	{
-		return this.editorFont;
-	}
-
 	protected void closeWindow()
 	{
 		this.primaryStage.close();

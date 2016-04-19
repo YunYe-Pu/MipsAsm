@@ -1,5 +1,6 @@
 package mipsAsm.util;
 
+import javafx.beans.binding.BooleanExpression;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Menu;
@@ -13,27 +14,30 @@ import javafx.scene.input.KeyCombination.Modifier;
 public class MenuHelper
 {
 	public static MenuItem item(String title, EventHandler<ActionEvent> onAction,
-			String character, Modifier... modifier)
+			BooleanExpression disableBinding, String character, Modifier... modifier)
 	{
 		MenuItem ret = new MenuItem(title);
 		ret.setOnAction(onAction);
 		ret.setAccelerator(new KeyCharacterCombination(character, modifier));
+		ret.disableProperty().bind(disableBinding);
 		return ret;
 	}
 
 	public static MenuItem item(String title, EventHandler<ActionEvent> onAction,
-			KeyCode keyCode, Modifier... modifier)
+			BooleanExpression disableBinding, KeyCode keyCode, Modifier... modifier)
 	{
 		MenuItem ret = new MenuItem(title);
 		ret.setOnAction(onAction);
 		ret.setAccelerator(new KeyCodeCombination(keyCode, modifier));
+		ret.disableProperty().bind(disableBinding);
 		return ret;
 	}
 	
-	public static MenuItem item(String title, EventHandler<ActionEvent> onAction)
+	public static MenuItem item(String title, EventHandler<ActionEvent> onAction, BooleanExpression disableBinding)
 	{
 		MenuItem ret = new MenuItem(title);
 		ret.setOnAction(onAction);
+		ret.disableProperty().bind(disableBinding);
 		return ret;
 	}
 	
