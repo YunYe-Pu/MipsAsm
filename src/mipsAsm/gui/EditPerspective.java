@@ -22,6 +22,7 @@ import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import mipsAsm.assembler.Assembler;
@@ -76,6 +77,31 @@ public class EditPerspective extends BorderPane
 		
 		GUIMain.instance.endianess().addListener((e, oldVal, newVal) -> this.assembler.setEndianess(newVal));
 		GUIMain.instance.endianess().addListener((e, oldVal, newVal) -> this.menuItems[3][0].setText(newVal? "Endian:big": "Endian:little"));
+		
+		this.setOnDragOver(e ->
+		{
+			if(e.getGestureSource() == this) return;
+			if(e.getDragboard().hasFiles())
+				e.acceptTransferModes(TransferMode.ANY);
+		});
+		
+		this.setOnDragDropped(event ->
+		{
+			List<File> files = event.getDragboard().getFiles();
+			if(files == null || files.isEmpty()) return;
+			for(File f : files)
+			{
+				String extension = f.getName();
+				int i = extension.lastIndexOf('.');
+				if(i >= 0)
+					extension = extension.substring(i);
+				if(!".s".equalsIgnoreCase(extension)) continue;
+				this.codeEditors.getTabs().add(new CodeEditorTab(f, e -> this.onEditorTabChange()));
+			}
+			this.codeEditors.getSelectionModel().selectLast();
+			this.onEditorTabChange();
+			this.console.clear();
+		});
 
 		this.setTop(this.menuBar);
 		this.setCenter(p1);

@@ -141,6 +141,7 @@ public class Main
 				s.writeBinary(output);
 				break;
 			}
+			System.out.println("Assembly successful.");
 		}
 		catch(FileNotFoundException e1)
 		{

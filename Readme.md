@@ -67,11 +67,11 @@ The simulator is currently unavailable in command line interface, although this 
 
 The GUI provides basic code editing functionality. Assembly or simulation can run on the currently displayed file or all currently opened files. Disassembling a file will open up a new tab displaying the disassembled code.
 
-The code editor provides NO line numbering or syntax highlighting; javaFX native text area does not support this feature. Sorry for the inconvenience, but you can edit the code in an editor you like, and use the Reload menu option to reload the code before assembly.
+The code editor provides NO line numbering or syntax highlighting; javaFX native text area does not support this feature. Sorry for the inconvenience, but you can edit the code in an editor you like, and use the Reload menu option to reload the code before assembly. Drag-and-drop is supported for opening a source file.
 
 Simulator is fully functional in GUI, with memory and register editing pane and a disassembly text area. Data in memory and register can be modified by double-clicking on the cell, and the offset column in memory edit pane can also be edited for fast access to an arbitrary memory location. 
 
-Available simulation operation under GUI include Step, which executes a single instruction, and Run, which runs continuously until the program counter goes out of the program section, an exception occur, or manually aborted.
+Available simulation operation under GUI include Step, which executes a single instruction, and Run, which runs continuously until the program counter goes out of the program section, an exception occur, or manually aborted. After the program counter goes out of the program section, the run operation will become unavailable, until the simulation is restarted.
 
 ##Screenshots
 
