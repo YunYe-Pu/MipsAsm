@@ -9,7 +9,7 @@ import mipsAsm.assembler.util.LabelOccurence;
 import mipsAsm.assembler.util.LinkType;
 import mipsAsm.assembler.util.Occurence;
 
-public class OpLabel extends Operand implements LinkableOperand
+public class OpLabel extends LinkableOperand
 {
 	public static final String format = "[a-zA-Z_][\\w]*";
 

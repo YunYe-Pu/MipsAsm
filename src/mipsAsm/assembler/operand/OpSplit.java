@@ -14,7 +14,7 @@ import mipsAsm.assembler.util.LinkType;
  * @author YunYe Pu
  *
  */
-public class OpSplit extends Operand implements LinkableOperand
+public class OpSplit extends LinkableOperand
 {
 	public final Operand operand;
 	private int shift;
