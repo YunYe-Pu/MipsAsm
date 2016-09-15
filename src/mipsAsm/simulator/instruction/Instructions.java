@@ -148,7 +148,7 @@ public class Instructions
 			sim.reg.set(p[1], sim.mem.readWord(sim.reg.get(p[0]) + p[2])));
 		instructionMap[36] = new Instruction(InstructionFmt.I, (sim, p) -> //lbu
 			sim.reg.set(p[1], sim.mem.readByteUnsigned(sim.reg.get(p[0]) + p[2])));
-		instructionMap[33] = new Instruction(InstructionFmt.I, (sim, p) -> //lhu
+		instructionMap[37] = new Instruction(InstructionFmt.I, (sim, p) -> //lhu
 			sim.reg.set(p[1], sim.mem.readHalfWordUnsigned(sim.reg.get(p[0]) + p[2])));
 		instructionMap[38] = new Instruction(InstructionFmt.I, (sim, p) -> //lwr
 			sim.reg.set(p[1], sim.mem.readRight(sim.reg.get(p[0]) + p[2], sim.reg.get(p[1]))));

@@ -98,8 +98,8 @@ public enum StandardInstrParser implements InstructionParser
 	
 	MOVE    (InstructionFmt.R, OperandFmt.RR , 0x00, -2, 0, -1, 0, 0x25),//implement with OR, as GNU assembler does.
 	NOT     (InstructionFmt.R, OperandFmt.RR , 0x00, -2, 0, -1, 0, 0x27),//implement with NOR
+	ERET	(InstructionFmt.J, OperandFmt.NONE, 0x10, 0x2000018),
 	;
-
 	private final InstructionFmt instrFormat;
 	private final OperandFmt operandFormat;
 	private final int opCode;

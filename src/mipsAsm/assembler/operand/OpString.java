@@ -19,6 +19,7 @@ public class OpString extends Operand
 	
 	public OpString(String token) throws AsmError
 	{
+//		System.out.println(token);
 		char[] s1 = token.toCharArray();
 		char[] s2 = new char[s1.length];
 		int i, j;
@@ -52,6 +53,10 @@ public class OpString extends Operand
 					break;
 				case '\\':
 					s2[j++] = '\\';
+					break;
+//				case 's':
+//					s2[j++] = ' ';
+//					break;
 				default:
 					throw new AsmError("Invalid escape sequence", "The escape sequence \\" + s1[i]
 							+ " is invalid; valid ones are \\b \\t \\n \\f \\r \\\" \\\' \\\\");

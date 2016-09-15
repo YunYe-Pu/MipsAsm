@@ -6,7 +6,7 @@ The assembler, disassembler and simulator is based on "MIPS32 Architecture for P
 
 The graphical user interface is powered by javaFX.
 
-Executables on Windows and Linux platforms are packaged by launch4j. Command line interface is unavailable from packaged executables.
+Executable on Windows platform is packaged by launch4j. Command line interface is unavailable from packaged executable.
 
 ##Assembler
 

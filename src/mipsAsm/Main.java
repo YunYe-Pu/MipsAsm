@@ -19,6 +19,18 @@ public class Main
 	
 	public static void main(String[] args)
 	{
+//		Assembler assembler = new Assembler(System.out);
+//		File f = new File("C:/Users/YunYe Pu/Documents/Xilinx/SummerProj/src/asm/main.s");
+//		try
+//		{
+//			assembler.assemble(f);
+//			BitStream s = assembler.linkGlobal();
+//		}
+//		catch(FileNotFoundException | AsmError e)
+//		{
+//			e.printStackTrace();
+//		}
+		
 		ArrayList<File> input = new ArrayList<>();
 		ArrayList<File> output = new ArrayList<>();
 		Task task = Task.ASSEMBLE;

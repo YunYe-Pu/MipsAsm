@@ -67,15 +67,19 @@ public class Assembler
 	 */
 	public void assemble(File input) throws FileNotFoundException, AsmError
 	{
-		boolean concatenate = false;
-		boolean nextConcatenate = false;
 		ArrayList<String> lineToken = new ArrayList<>();
 		ArrayList<Operand> instrOperands = new ArrayList<>();
 		ArrayList<Instruction> fileInstruction = new ArrayList<>();
 		HashMap<String, LabelOccurence> fileLabelMap = new HashMap<>();
 		String currMnemonic = null;
 		int instructionAddr = this.instructions.size();
-		
+
+		boolean concatenate = false;
+		boolean nextConcatenate = false;
+		boolean inComment = false;
+		boolean inQuotation = false;
+		StringBuilder tokenBuffer = new StringBuilder();
+
 		this.fileGlobalLabel.clear();
 
 		currProcessing = new Occurence(input.getName(), 0, "");
@@ -84,19 +88,97 @@ public class Assembler
 			while(scanner.hasNextLine())
 			{
 				currProcessing = new Occurence(currProcessing.fileName, currProcessing.lineNum + 1, scanner.nextLine());
-				lineToken.clear();
-				//insert spaces
-				String processedLine = currProcessing.lineContent.replaceAll(":", ": ").replaceAll("\\$", " \\$").replaceAll("[,\\(\\)]", " ");
-				//remove comments
-				processedLine = processedLine.replaceAll("#.*", "");
+//				//insert spaces
+//				String processedLine = currProcessing.lineContent.replaceAll(":", ": ").replaceAll("\\$", " \\$").replaceAll("[,\\(\\)]", " ");
+//				//remove comments
+//				processedLine = processedLine.replaceAll("#.*", "");
+//				
+//				if(processedLine.endsWith("\\"))
+//				{
+//					nextConcatenate = true;
+//					processedLine = processedLine.substring(0, processedLine.length() - 1);
+//				}
+//				
+//				splitTokens(processedLine, lineToken);
 				
-				if(processedLine.endsWith("\\"))
+				//Tokenize current line
+				char[] line = currProcessing.lineContent.toCharArray();
+				char prevChar = 0;
+				tokenBuffer.setLength(0);
+				for(char currChar : line)
 				{
-					nextConcatenate = true;
-					processedLine = processedLine.substring(0, processedLine.length() - 1);
+					if(inComment)
+					{
+						prevChar = line[line.length - 1];
+						break;
+					}
+					else if(inQuotation)
+					{
+						if(prevChar != '\\' && currChar == '\"')
+						{
+							inQuotation = false;
+							tokenBuffer.append('\"');
+							lineToken.add(tokenBuffer.toString());
+							tokenBuffer.setLength(0);
+						}
+						else
+							tokenBuffer.append(currChar);
+					}
+					else
+					{
+						switch(currChar) {
+						case '#':
+							inComment = true;
+							if(tokenBuffer.length() > 0)
+							{
+								lineToken.add(tokenBuffer.toString());
+								tokenBuffer.setLength(0);
+							}
+							break;
+						case '\"':
+							inQuotation = true;
+							if(tokenBuffer.length() > 0)
+							{
+								lineToken.add(tokenBuffer.toString());
+								tokenBuffer.setLength(0);
+							}
+							tokenBuffer.append('\"');
+							break;
+						case ':':
+							tokenBuffer.append(':');
+						case ' ':
+						case ',':
+						case '(':
+						case ')':
+						case '\t':
+							if(tokenBuffer.length() > 0)
+							{
+								lineToken.add(tokenBuffer.toString());
+								tokenBuffer.setLength(0);
+							}
+							break;
+						default:
+							tokenBuffer.append(currChar);
+						}
+					}
+					prevChar = currChar;
 				}
+				if(inQuotation)
+					throw new AsmError("Unclosed quotation", "Reached end of line with an open quotation");
+				concatenate = prevChar == '\\';
+				if(tokenBuffer.length() > 0 && !concatenate)
+					lineToken.add(tokenBuffer.toString());
+				if(!concatenate)
+					inComment = false;
 				
-				splitTokens(processedLine, lineToken);
+				if(concatenate) continue;
+
+//				for(String token : lineToken)
+//				{
+//					System.out.print(token);
+//					System.out.print(" | ");
+//				}
+//				System.out.println();
 				
 				for(String token : lineToken)
 				{
@@ -105,8 +187,10 @@ public class Assembler
 						if(token.matches("[a-zA-Z_][\\w]*:"))//label declaration
 						{
 							String labelStr = token.substring(0, token.length() - 1);
-							if(fileLabelMap.containsKey(labelStr) || this.globalLabelMap.containsKey(labelStr))
+							if(fileLabelMap.containsKey(labelStr))
 								throw new LabelRedeclareError(labelStr, fileLabelMap.get(labelStr).occurence);
+							else if(this.globalLabelMap.containsKey(labelStr))
+								throw new LabelRedeclareError(labelStr, this.globalLabelMap.get(labelStr).occurence);
 							fileLabelMap.put(labelStr, new LabelOccurence(instructionAddr + fileInstruction.size(), currProcessing));
 						}
 						else if(token.matches("[a-zA-Z_\\.][\\w\\.]*"))//mnemonic
@@ -122,9 +206,10 @@ public class Assembler
 						instrOperands.add(operand);
 					}
 				}
+				lineToken.clear();
 				
-				if(!concatenate)
-				{
+//				if(!concatenate)
+//				{
 					if(currMnemonic != null)
 					{
 						Operand[] operands = new Operand[instrOperands.size()];
@@ -138,9 +223,7 @@ public class Assembler
 					}
 					instrOperands.clear();
 					currMnemonic = null;
-				}
-
-				concatenate = nextConcatenate;
+//				}
 			}
 			
 			//link local labels in current file
@@ -278,4 +361,5 @@ public class Assembler
 			}
 		}
 	}
+	
 }

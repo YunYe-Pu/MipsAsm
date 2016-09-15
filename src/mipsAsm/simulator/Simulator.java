@@ -52,6 +52,7 @@ public class Simulator
 	
 	public void loadProgram(int[] programData, int initPC)
 	{
+		System.out.println("Load program, init PC = " + initPC);
 		this.programData = programData;
 		this.initPC = initPC << 2;
 		this.resetSimProgress();

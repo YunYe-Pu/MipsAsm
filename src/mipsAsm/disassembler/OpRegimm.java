@@ -38,7 +38,7 @@ public final class OpRegimm
 	
 	public static final Function<Integer, String> disassembly = binary -> {
 		int[] param = InstructionFmt.I.splitBinary(binary);
-		DisassemblyEntry e = entryMap[param[1]];
+		DisassemblyEntry e = entryMap[param[1] & 31];
 		if(e == null)
 			return null;
 		else

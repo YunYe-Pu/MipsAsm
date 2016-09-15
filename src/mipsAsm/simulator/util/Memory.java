@@ -56,7 +56,7 @@ public class Memory
 			if((i & 0x3ff) == 0x3ff)
 			{
 				page = new int[1024];
-				this.pages.put((i + 1) >> 12, page);
+				this.pages.put((i + 1) >> 10, page);
 			}
 		}
 		for(i &= 0x3ff; i < 1024; i++)
