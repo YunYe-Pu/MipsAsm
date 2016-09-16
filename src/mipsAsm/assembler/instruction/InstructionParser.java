@@ -14,7 +14,7 @@ public interface InstructionParser
 	 * There is no restriction on how many instruction is generated.
 	 * 
 	 * @param operands The operands supplied by the assembler.
-	 * @param warningHandler The warning handler. If any warning occur(currently
+	 * @param assembler The warning handler. If any warning occur(currently
 	 * mostly from {@link Operand#setWidth} method), invoke {@link Assembler#handleWarning handleWarning}
 	 * method to handle the warnings.
 	 * @param instrList The list to put the instruction(s) in.

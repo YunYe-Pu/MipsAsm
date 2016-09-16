@@ -10,7 +10,7 @@ import mipsAsm.assembler.operand.Operand;
 
 /**
  * The instruction parsers for R-type and I-type paired instructions, like ADD and ADDI.
- * These instructions will compile into different instruction formats if provided with
+ * These instructions will assemble into different instruction formats if provided with
  * different types of operands, so the programmer can write the same mnemonic for both
  * instructions.<br />
  * This class is dependent on the {@link StandardInstrParser} class, and when registering instructions

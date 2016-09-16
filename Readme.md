@@ -2,7 +2,7 @@
 
 This is my project for the course Computer Organization, Zhejiang University.
 
-The assembler, disassembler and simulator is based on "MIPS32 Architecture for Programmers Volume II: The MIPS32 Instruction Set".
+The assembler, disassembler and simulator is based on *MIPS32 Architecture for Programmers Volume II: The MIPS32 Instruction Set*.
 
 The graphical user interface is powered by javaFX.
 
@@ -25,13 +25,13 @@ Supports the following assembler directives:
 
 Error checking is performed during assembly, including operand type/count mismatch, label not declared/redeclared, etc. Warnings are signaled for immediate overflow, deprecated operand type, etc.
 
-For instructions that has both a register version and an immediate version(like add and addi), you can always write the shorter mnemonic. The assembler will determine which type of instruction to assemble according to operand types.
+For instructions that has both a register version and an immediate version(like add and addi), the shorter mnemonic is always accepted for either operand types; The assembler will determine which type of instruction to assemble according to operand types.
 
 Output type is determined by the extension of output file. Available output types include .COE file, hexadecimal text file, and binary file. When writing hexadecimal or binary file, endianness is default to be little, unless specified with -b or -l options in CLI or via the menu in GUI.
 
 ##Disassembler
 
-The disassembler can disassemble all three file types output by assembler. When disassembling binary or hexadecimal file, endianness should be correctly configured, otherwise the output will be incorrect with many unrecognized instruction.
+The disassembler can disassemble all three file types output by assembler. When disassembling binary or hexadecimal file, endianness should be correctly configured, otherwise the output will be incorrect with many unrecognized instructions.
 
 Label is currently unsupported in disassembly, so an immediate will be placed in a branch/jump instruction.
 

@@ -80,31 +80,6 @@ public class Directives
 		@Override
 		public void parse(Operand[] operands, Assembler assembler, ArrayList<Instruction> instructionList) throws AsmError
 		{
-//			int count = 0;
-//			int value = 0;
-//			boolean bigEndian = assembler.getEndianess();
-//			for(int i = 0; i < operands.length; i++)
-//			{
-//				if(!(operands[i] instanceof OpImmediate))
-//					throw new OpTypeMismatchError(i, operands[i], OpImmediate.class);
-//				AsmWarning w = operands[i].setWidth(this.width);
-//				if(w != null)
-//					assembler.handleWarning(w);
-//				
-//				
-//				
-//				value = (value << this.width) | operands[i].getEncoding();
-//				count += this.width;
-//				if(count == 32)
-//				{
-//					instructionList.add(new DataInstruction(value));
-//					count = 0;
-//					value = 0;
-//				}
-//			}
-//			
-//			if(count != 0)
-//				instructionList.add(new DataInstruction(value << (32 - count)));
 			int shift = 0;
 			int value = 0;
 			boolean bigEndian = assembler.getEndianess();

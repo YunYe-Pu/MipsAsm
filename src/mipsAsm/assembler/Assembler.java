@@ -74,8 +74,6 @@ public class Assembler
 		String currMnemonic = null;
 		int instructionAddr = this.instructions.size();
 
-		boolean concatenate = false;
-		boolean nextConcatenate = false;
 		boolean inComment = false;
 		boolean inQuotation = false;
 		StringBuilder tokenBuffer = new StringBuilder();
@@ -88,19 +86,7 @@ public class Assembler
 			while(scanner.hasNextLine())
 			{
 				currProcessing = new Occurence(currProcessing.fileName, currProcessing.lineNum + 1, scanner.nextLine());
-//				//insert spaces
-//				String processedLine = currProcessing.lineContent.replaceAll(":", ": ").replaceAll("\\$", " \\$").replaceAll("[,\\(\\)]", " ");
-//				//remove comments
-//				processedLine = processedLine.replaceAll("#.*", "");
-//				
-//				if(processedLine.endsWith("\\"))
-//				{
-//					nextConcatenate = true;
-//					processedLine = processedLine.substring(0, processedLine.length() - 1);
-//				}
-//				
-//				splitTokens(processedLine, lineToken);
-				
+
 				//Tokenize current line
 				char[] line = currProcessing.lineContent.toCharArray();
 				char prevChar = 0;
@@ -165,21 +151,15 @@ public class Assembler
 				}
 				if(inQuotation)
 					throw new AsmError("Unclosed quotation", "Reached end of line with an open quotation");
-				concatenate = prevChar == '\\';
-				if(tokenBuffer.length() > 0 && !concatenate)
-					lineToken.add(tokenBuffer.toString());
-				if(!concatenate)
+				if(prevChar != '\\')
+				{
 					inComment = false;
-				
-				if(concatenate) continue;
+					if(tokenBuffer.length() > 0)
+						lineToken.add(tokenBuffer.toString());
+				}
+				else
+					continue;
 
-//				for(String token : lineToken)
-//				{
-//					System.out.print(token);
-//					System.out.print(" | ");
-//				}
-//				System.out.println();
-				
 				for(String token : lineToken)
 				{
 					if(currMnemonic == null)//allowed token: label declaration, mnemonic
@@ -208,22 +188,19 @@ public class Assembler
 				}
 				lineToken.clear();
 				
-//				if(!concatenate)
-//				{
-					if(currMnemonic != null)
-					{
-						Operand[] operands = new Operand[instrOperands.size()];
-						instrOperands.toArray(operands);
-						this.nextDelaySlot = false;
-						if(currMnemonic.startsWith("."))
-							Directives.getHandler(currMnemonic).parse(operands, this, fileInstruction);
-						else
-							Instructions.getParser(currMnemonic).parse(operands, this, fileInstruction);
-						this.delaySlot = this.nextDelaySlot;
-					}
-					instrOperands.clear();
-					currMnemonic = null;
-//				}
+				if(currMnemonic != null)
+				{
+					Operand[] operands = new Operand[instrOperands.size()];
+					instrOperands.toArray(operands);
+					this.nextDelaySlot = false;
+					if(currMnemonic.startsWith("."))
+						Directives.getHandler(currMnemonic).parse(operands, this, fileInstruction);
+					else
+						Instructions.getParser(currMnemonic).parse(operands, this, fileInstruction);
+					this.delaySlot = this.nextDelaySlot;
+				}
+				instrOperands.clear();
+				currMnemonic = null;
 			}
 			
 			//link local labels in current file
@@ -278,7 +255,7 @@ public class Assembler
 		}
 		catch(AsmError e)
 		{
-			this.consoleOutput.print(e.getLocalizedMessage());
+			this.consoleOutput.print(e.getErrorMessage());
 			this.consoleOutput.println("Assembly terminated.");
 			return null;
 		}
@@ -336,30 +313,6 @@ public class Assembler
 		this.consoleOutput.println(e.getMessage());
 		this.consoleOutput.println(currProcessing.lineNum + "  " + currProcessing.lineContent);
 		this.consoleOutput.println();
-	}
-	
-	private void splitTokens(String processedLine, ArrayList<String> tokens)
-	{
-		String[] split = processedLine.split("\\s");
-		String prevString = null;
-		for(String s : split)
-		{
-			if(s.isEmpty()) continue;
-			if(prevString == null)
-			{
-				if(s.startsWith("\"") && !(s.endsWith("\"") && !s.endsWith("\\\"")))
-					prevString = s;
-				else
-					tokens.add(s);
-			}
-			else
-			{
-				if(s.endsWith("\"") && !s.endsWith("\\\""))
-					tokens.add(prevString + " " + s);
-				else
-					prevString = prevString + s;
-			}
-		}
 	}
 	
 }

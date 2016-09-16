@@ -14,6 +14,12 @@ import mipsAsm.assembler.util.InstructionFmt;
 import mipsAsm.assembler.util.LinkType;
 import mipsAsm.assembler.util.OperandFmt;
 
+/**
+ * Macro instruction parsers implemented with java lambda expressions.
+ * These instructions will assemble into multiple machine instructions.
+ * 
+ * @author YunYe Pu
+ */
 public final class LambdaMacros
 {
 	private LambdaMacros() {}

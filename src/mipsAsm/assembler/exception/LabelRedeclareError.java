@@ -14,9 +14,10 @@ public class LabelRedeclareError extends AsmError
 		this.firstDeclare = firstDeclare;
 	}
 	
-	public String getLocalizedMessage()
+	@Override
+	public String getErrorMessage()
 	{
-		String s = super.getLocalizedMessage();
+		String s = super.getErrorMessage();
 		s += String.format("First declared in file %s, line %d:\n", firstDeclare.fileName, firstDeclare.lineNum);
 		s += firstDeclare.lineNum + "  " + firstDeclare.lineContent + "\n";
 		return s;

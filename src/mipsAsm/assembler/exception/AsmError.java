@@ -44,8 +44,7 @@ public class AsmError extends Exception
 		return this.occurence;
 	}
 	
-	@Override
-	public String getLocalizedMessage()
+	public String getErrorMessage()
 	{
 		String s = String.format("Error in file %s, line %d: %s\n", this.occurence.fileName, this.occurence.lineNum, this.type);
 		s = s + this.getMessage() + "\n";
