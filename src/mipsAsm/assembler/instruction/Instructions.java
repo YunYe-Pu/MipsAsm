@@ -3,6 +3,7 @@ package mipsAsm.assembler.instruction;
 import java.util.HashMap;
 
 import mipsAsm.assembler.exception.AsmError;
+import mipsAsm.assembler.instruction.macro.BranchMacros;
 import mipsAsm.assembler.instruction.macro.LambdaMacros;
 
 public final class Instructions
@@ -27,6 +28,9 @@ public final class Instructions
 			mnemonicMap.put(i.name().toLowerCase(), i);
 			mnemonicMap.put(i.alias, i);
 		}
+		
+		for(BranchMacros i : BranchMacros.values())
+			mnemonicMap.put(i.name().toLowerCase(), i);
 		
 		mnemonicMap.put("li", LambdaMacros.LI);
 		mnemonicMap.put("la", LambdaMacros.LA);

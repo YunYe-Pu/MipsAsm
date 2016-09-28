@@ -180,7 +180,7 @@ public class Assembler
 					}
 					else//allowed token: operands(arguments)
 					{
-						Operand operand = Operand.parse(token);
+						Operand operand = Operand.parse(token, this);
 						if(operand instanceof OpLabel)
 							((OpLabel)operand).setOccurence(currProcessing);
 						instrOperands.add(operand);

@@ -11,8 +11,8 @@ import mipsAsm.assembler.util.OperandFmt;
 
 /**
  * This class provide some of the standard unlinkable instructions
- * in MIPS32 instruction set. Most of the CPU instructions are
- * included; none of coprocessor-related instructions are included.
+ * in MIPS32 instruction set. Most of the CPU and COP0 instructions are
+ * included; none of FPU-related instructions are included.
  * Also included some assembly idioms, like NOP and MOVE.<br />
  * All the instructions here will assemble into one machine instruction.
  * 
@@ -98,7 +98,14 @@ public enum StandardInstrParser implements InstructionParser
 	
 	MOVE    (InstructionFmt.R, OperandFmt.RR , 0x00, -2, 0, -1, 0, 0x25),//implement with OR, as GNU assembler does.
 	NOT     (InstructionFmt.R, OperandFmt.RR , 0x00, -2, 0, -1, 0, 0x27),//implement with NOR
-	ERET	(InstructionFmt.J, OperandFmt.NONE, 0x10, 0x2000018),
+
+	ERET    (InstructionFmt.J, OperandFmt.NONE, 0x10, 0x2000018),
+	TLBP    (InstructionFmt.J, OperandFmt.NONE, 0x10, 0x2000008),
+	TLBR    (InstructionFmt.J, OperandFmt.NONE, 0x10, 0x2000001),
+	TLBWI   (InstructionFmt.J, OperandFmt.NONE, 0x10, 0x2000002),
+	TLBWR   (InstructionFmt.J, OperandFmt.NONE, 0x10, 0x2000006),
+	MFC0    (InstructionFmt.MFTC0, OperandFmt.RRI, 0x10, 0x0, -1, -2, 0x0, -3),
+	MTC0    (InstructionFmt.MFTC0, OperandFmt.RRI, 0x10, 0x4, -1, -2, 0x0, -3),
 	;
 	private final InstructionFmt instrFormat;
 	private final OperandFmt operandFormat;

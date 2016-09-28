@@ -2,6 +2,7 @@ package mipsAsm.assembler.operand;
 
 import java.util.HashMap;
 
+import mipsAsm.assembler.Assembler;
 import mipsAsm.assembler.exception.AsmError;
 import mipsAsm.assembler.util.AsmWarning;
 
@@ -14,7 +15,7 @@ public class OpRegister extends Operand
 	protected final int regNum;
 	protected int mask;
 	
-	public OpRegister(String token) throws AsmError
+	public OpRegister(String token, Assembler assembler) throws AsmError
 	{
 		if(token.matches("\\$\\d{1,2}"))
 		{
@@ -28,10 +29,18 @@ public class OpRegister extends Operand
 		Integer regNum = regNameMap.get(token);
 		if(regNum != null)
 		{
+			if(token.equals("$at"))
+				assembler.handleWarning(new AsmWarning("Deprecated register name",
+						"Using $at in assembly code is not recommended."));
 			this.regNum = regNum;
 			return;
 		}
 		throw new AsmError("Unknown Register", "Unknown register name \"" + token + "\"");
+	}
+	
+	public OpRegister(int regNum)
+	{
+		this.regNum = regNum;
 	}
 
 	@Override
