@@ -45,6 +45,7 @@ public class Assembler
 	
 	protected boolean delaySlot;
 	protected boolean nextDelaySlot;
+	protected int initAddr = 0;
 	
 	public Assembler(PrintStream consoleOutput)
 	{
@@ -56,6 +57,7 @@ public class Assembler
 		this.instructions.clear();
 		this.globalLabelMap.clear();
 		this.delaySlot = this.nextDelaySlot = false;
+		this.initAddr = 0;
 	}
 	
 	/**
@@ -72,7 +74,7 @@ public class Assembler
 		ArrayList<Instruction> fileInstruction = new ArrayList<>();
 		HashMap<String, LabelOccurence> fileLabelMap = new HashMap<>();
 		String currMnemonic = null;
-		int instructionAddr = this.instructions.size();
+		int instructionAddr = this.instructions.size() + this.initAddr;
 
 		boolean inComment = false;
 		boolean inQuotation = false;
@@ -267,7 +269,7 @@ public class Assembler
 	public BitStream linkGlobal() throws AsmError
 	{
 		BitStream buffer = new BitStream(this.instructions.size(), this.endianess);
-		int addr = 0;
+		int addr = this.initAddr;
 		for(Instruction i : this.instructions)
 		{
 			if(i instanceof LinkableInstruction)
@@ -291,6 +293,16 @@ public class Assembler
 	public boolean isInDelaySlot()
 	{
 		return this.delaySlot;
+	}
+	
+	public boolean isEmpty()
+	{
+		return this.instructions.isEmpty();
+	}
+	
+	public void setInitAddr(int initAddr)
+	{
+		this.initAddr = initAddr;
 	}
 	
 	/**

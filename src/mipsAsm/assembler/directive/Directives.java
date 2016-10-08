@@ -17,7 +17,7 @@ import mipsAsm.assembler.util.OperandFmt;
 
 public class Directives
 {
-	public static final InstructionParser ASCIIZ = (operands, assembler, instructionList) ->
+	private static final InstructionParser ASCIIZ = (operands, assembler, instructionList) ->
 	{
 		int opIndex = 0;
 		int charIndex = 0;
@@ -46,7 +46,7 @@ public class Directives
 		instructionList.add(new DataInstruction(value));
 	};
 	
-	public static final InstructionParser GLOBl = (operands, assembler, instructionList) ->
+	private static final InstructionParser GLOBl = (operands, assembler, instructionList) ->
 	{
 		int opIndex = 0;
 		for(Operand op : operands)
@@ -57,7 +57,7 @@ public class Directives
 		}
 	};
 	
-	public static final InstructionParser SPACE = (operands, assembler, instructionList) ->
+	private static final InstructionParser SPACE = (operands, assembler, instructionList) ->
 	{
 		OperandFmt.I.matches(operands);
 		int i = operands[0].getEncoding();
@@ -68,7 +68,7 @@ public class Directives
 			instructionList.add(inst);
 	};
 
-	public static class BinaryHandler implements InstructionParser
+	private static class BinaryHandler implements InstructionParser
 	{
 		private final int width;
 		
@@ -105,6 +105,17 @@ public class Directives
 		}
 	}
 	
+	private static final InstructionParser INIT = (operands, assembler, instructionList) ->
+	{
+		if(instructionList.isEmpty() && assembler.isEmpty())
+		{
+			OperandFmt.I.matches(operands);
+			assembler.setInitAddr(operands[0].getEncoding());
+		}
+		else
+			throw new AsmError("", ".init directive can only be used at the beginning of assembly code.");
+	};
+	
 	private static final HashMap<String, InstructionParser> handlerMap = new HashMap<>();
 	
 	static
@@ -115,6 +126,7 @@ public class Directives
 		handlerMap.put(".half", new Directives.BinaryHandler(16));
 		handlerMap.put(".word", new Directives.BinaryHandler(32));
 		handlerMap.put(".space", Directives.SPACE);
+		handlerMap.put(".init", Directives.INIT);
 	}
 	
 	public static InstructionParser getHandler(String directiveName) throws AsmError

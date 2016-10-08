@@ -94,6 +94,35 @@ public class OpRegister extends Operand
 		regNameMap.put("$sp", 29);
 		regNameMap.put("$fp", 30);
 		regNameMap.put("$ra", 31);
+		
+		regNameMap.put("$Index", 0);
+		regNameMap.put("$Random", 1);
+		regNameMap.put("$EntryLo0", 2);
+		regNameMap.put("$EntryLo1", 3);
+		regNameMap.put("$Context", 4);
+		regNameMap.put("$PageMask", 5);
+		regNameMap.put("$Wired", 6);
+		regNameMap.put("$BadVAddr", 8);
+		regNameMap.put("$Count", 9);
+		regNameMap.put("$EntryHi", 10);
+		regNameMap.put("$Compare", 11);
+		regNameMap.put("$Status", 12);
+		regNameMap.put("$Cause", 13);
+		regNameMap.put("$EPC", 14);
+		regNameMap.put("$PRId", 15);
+		regNameMap.put("$Config", 16);
+		regNameMap.put("$LLAddr", 17);
+		regNameMap.put("$WatchLo", 18);
+		regNameMap.put("$WatchHi", 19);
+		regNameMap.put("$Debug", 23);
+		regNameMap.put("$DEPC", 24);
+		regNameMap.put("$PerfCnt", 25);
+		regNameMap.put("$ErrCtl", 26);
+		regNameMap.put("$CacheErr", 27);
+		regNameMap.put("$CacheLo", 28);//TagLo, DataLo
+		regNameMap.put("$CacheHi", 29);//TagHi, DataHi
+		regNameMap.put("$ErrorEPC", 30);
+		regNameMap.put("$DESAVE", 31);
 	}
 	
 }
