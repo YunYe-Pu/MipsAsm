@@ -4,8 +4,8 @@ import java.util.function.Predicate;
 
 import mipsAsm.simulator.instruction.Instructions;
 import mipsAsm.simulator.util.Memory;
-import mipsAsm.simulator.util.RegisterFile;
-import mipsAsm.simulator.util.SimulatorException;
+import mipsAsm.simulator.util.SimException;
+import mipsAsm.simulator.util.SimExceptionCode;
 
 public class Simulator
 {
@@ -13,14 +13,15 @@ public class Simulator
 	private int currInstr;
 	private int[] scheduledPC = new int[2];
 	
-	public final RegisterFile reg = new RegisterFile();
+	public final RegisterFile gpr = new RegisterFile();
+	public final CP0RegisterFile cp0 = new CP0RegisterFile();
 	public final Memory mem = new Memory();
 	public int regHI = 0;
 	public int regLO = 0;
 
 	private int[] programData;
 	private int initPC;
-	private SimulatorException pendingException;
+	private SimExceptionCode pendingException;
 	
 	public static final Predicate<Simulator> pcOutofRange = sim -> {
 		return sim.programCounter < sim.initPC || 
@@ -33,14 +34,14 @@ public class Simulator
 	public void clear()
 	{
 		this.programCounter = 0;
-		this.reg.clear();
+		this.gpr.clear();
 		this.mem.clear();
 		this.regHI = this.regLO = 0;
 	}
 	
 	public void resetSimProgress()
 	{
-		this.reg.clear();
+		this.gpr.clear();
 		this.mem.clear();
 		this.mem.loadProgram(this.programData);
 		this.programCounter = this.initPC;
@@ -58,14 +59,22 @@ public class Simulator
 		this.resetSimProgress();
 	}
 	
-	public SimulatorException step()
+	public SimExceptionCode step()
 	{
 		this.pendingException = null;
-		Instructions.execute(this, this.currInstr);
+		try
+		{
+			Instructions.execute(this, this.currInstr);
+		}
+		catch(SimException e)
+		{
+			// TODO Auto-generated catch block
+		}
 
 		this.programCounter = this.scheduledPC[0];
 		this.scheduledPC[0] = this.scheduledPC[1];
 		this.scheduledPC[1] += 4;
+		//TODO Add address translation
 		this.currInstr = this.mem.readWord(this.programCounter);
 		return this.pendingException;
 	}
@@ -76,7 +85,7 @@ public class Simulator
 			this.step();
 	}
 	
-	public SimulatorException getLastException()
+	public SimExceptionCode getLastException()
 	{
 		return this.pendingException;
 	}
@@ -86,8 +95,9 @@ public class Simulator
 		this.pendingException = null;
 	}
 	
-	public void signalException(SimulatorException exceptionCode)
+	public void signalException(SimExceptionCode exceptionCode, int... params) throws SimException
 	{
+		//TODO
 		this.pendingException = exceptionCode;
 	}
 	

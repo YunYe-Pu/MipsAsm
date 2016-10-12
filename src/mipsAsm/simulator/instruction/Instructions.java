@@ -1,175 +1,167 @@
 package mipsAsm.simulator.instruction;
 
-import java.util.function.BiConsumer;
-
 import mipsAsm.assembler.util.InstructionFmt;
 import mipsAsm.simulator.Simulator;
-import mipsAsm.simulator.util.SimulatorException;
+import mipsAsm.simulator.util.SimException;
+import mipsAsm.simulator.util.SimExceptionCode;
 
 public class Instructions
 {
 
 	private static final Instruction[] instructionMap = new Instruction[64];
-	private static final Instruction unimplemented = new Instruction(null, null);
+	private static final InstructionFmt[] formatMap = new InstructionFmt[64];
 	
-	public static void execute(Simulator simulator, int instruction)
+	public static void execute(Simulator simulator, int instruction) throws SimException
 	{
-		Instruction e = instructionMap[(instruction >> 26) & 63];
-		if(e == unimplemented)
-			simulator.signalException(SimulatorException.UnimplementedInstruction);
-		else if(e != null)
-		{
-			int[] param = e.format.splitBinary(instruction);
-			e.executor.accept(simulator, param);
-		}
+		InstructionFmt format = formatMap[(instruction >> 26) & 63];
+		if(format == null)
+			instructionMap[(instruction >> 26) & 63].execute(simulator, null);
 		else
-			simulator.signalException(SimulatorException.ReservedInstruction);
-	}
-	
-	private static class Instruction
-	{
-		public final InstructionFmt format;
-		public final BiConsumer<Simulator, int[]> executor;
-		
-		public Instruction(InstructionFmt format, BiConsumer<Simulator, int[]> executor)
 		{
-			this.format = format;
-			this.executor = executor;
+			int[] param = format.splitBinary(instruction);
+			instructionMap[(instruction >> 26) & 63].execute(simulator, param);
 		}
 	}
 	
 	static
 	{
-		instructionMap[0] = new Instruction(InstructionFmt.R, OpSpecial.executor);//special
-		instructionMap[1] = new Instruction(InstructionFmt.R, OpRegimm.executor);//regimm
+		put(0, InstructionFmt.R, OpSpecial.executor);//special
+		put(1, InstructionFmt.R, OpRegimm.executor);//regimm
 
-		instructionMap[2] = new Instruction(InstructionFmt.J, (sim, p) -> //j
+		put(2, InstructionFmt.J, (sim, p) -> //j
 			sim.scheduleAbsoluteJump(p[0] << 2, 0x0fffffff));
 
-		instructionMap[3] = new Instruction(InstructionFmt.J, (sim, p) -> {//jal
+		put(3, InstructionFmt.J, (sim, p) -> {//jal
 			sim.scheduleAbsoluteJump(p[0] << 2, 0x0fffffff);
-			sim.reg.set(31, sim.getPC() + 8);
+			sim.gpr.set(31, sim.getPC() + 8);
 		});
 
-		instructionMap[4] = new Instruction(InstructionFmt.I, (sim, p) -> {//beq
-			if(sim.reg.get(p[0]) == sim.reg.get(p[1])) sim.scheduleRelativeJump((p[2] + 1) << 2);
+		put(4, InstructionFmt.I, (sim, p) -> {//beq
+			if(sim.gpr.get(p[0]) == sim.gpr.get(p[1])) sim.scheduleRelativeJump((p[2] + 1) << 2);
 		});
 
-		instructionMap[5] = new Instruction(InstructionFmt.I, (sim, p) -> {//bne
-			if(sim.reg.get(p[0]) != sim.reg.get(p[1])) sim.scheduleRelativeJump((p[2] + 1) << 2);
+		put(5, InstructionFmt.I, (sim, p) -> {//bne
+			if(sim.gpr.get(p[0]) != sim.gpr.get(p[1])) sim.scheduleRelativeJump((p[2] + 1) << 2);
 		});
 
-		instructionMap[6] = new Instruction(InstructionFmt.I, (sim, p) -> {//blez
-			if(sim.reg.get(p[0]) <= 0) sim.scheduleRelativeJump((p[2] + 1) << 2);
+		put(6, InstructionFmt.I, (sim, p) -> {//blez
+			if(sim.gpr.get(p[0]) <= 0) sim.scheduleRelativeJump((p[2] + 1) << 2);
 		});
 
-		instructionMap[7] = new Instruction(InstructionFmt.I, (sim, p) -> {//bgtz
-			if(sim.reg.get(p[0]) > 0) sim.scheduleRelativeJump((p[2] + 1) << 2);
+		put(7, InstructionFmt.I, (sim, p) -> {//bgtz
+			if(sim.gpr.get(p[0]) > 0) sim.scheduleRelativeJump((p[2] + 1) << 2);
 		});
 
-		instructionMap[8] = new Instruction(InstructionFmt.I, (sim, p) -> {//addi
-			int rs = sim.reg.get(p[0]), rt = rs + p[2];
+		put(8, InstructionFmt.I, (sim, p) -> {//addi
+			int rs = sim.gpr.get(p[0]), rt = rs + p[2];
 			if((rs > 0 && p[2] > 0 && rt < 0) || (rs < 0 && p[2] < 0 && rt > 0))
-				sim.signalException(SimulatorException.IntegerOverflow);
+				sim.signalException(SimExceptionCode.IntegerOverflow);
 			else
-				sim.reg.set(p[1], rt);
+				sim.gpr.set(p[1], rt);
 		});
 
-		instructionMap[9] = new Instruction(InstructionFmt.I, (sim, p) -> //addiu
-			sim.reg.set(p[1], sim.reg.get(p[0]) + p[2]));
+		put(9, InstructionFmt.I, (sim, p) -> //addiu
+			sim.gpr.set(p[1], sim.gpr.get(p[0]) + p[2]));
 
-		instructionMap[10] = new Instruction(InstructionFmt.I, (sim, p) -> //slti
-			sim.reg.set(p[1], sim.reg.get(p[0]) < p[2]? 1: 0));
+		put(10, InstructionFmt.I, (sim, p) -> //slti
+			sim.gpr.set(p[1], sim.gpr.get(p[0]) < p[2]? 1: 0));
 
-		instructionMap[11] = new Instruction(InstructionFmt.I, (sim, p) -> //sltiu
-			sim.reg.set(p[1], ((long)sim.reg.get(p[0]) & 0xffffffffL) < ((long)p[2] & 0xffffffffL)? 1: 0));
+		put(11, InstructionFmt.I, (sim, p) -> //sltiu
+			sim.gpr.set(p[1], ((long)sim.gpr.get(p[0]) & 0xffffffffL) < ((long)p[2] & 0xffffffffL)? 1: 0));
 
-		instructionMap[12] = new Instruction(InstructionFmt.I, (sim, p) -> //andi
-			sim.reg.set(p[1], sim.reg.get(p[0]) & (p[2] & 0x0000ffff)));
+		put(12, InstructionFmt.I, (sim, p) -> //andi
+			sim.gpr.set(p[1], sim.gpr.get(p[0]) & (p[2] & 0x0000ffff)));
 		
-		instructionMap[13] = new Instruction(InstructionFmt.I, (sim, p) -> //ori
-			sim.reg.set(p[1], sim.reg.get(p[0]) | (p[2] & 0x0000ffff)));
+		put(13, InstructionFmt.I, (sim, p) -> //ori
+			sim.gpr.set(p[1], sim.gpr.get(p[0]) | (p[2] & 0x0000ffff)));
 		
-		instructionMap[14] = new Instruction(InstructionFmt.I, (sim, p) -> //xori
-			sim.reg.set(p[1], sim.reg.get(p[0]) ^ (p[2] & 0x0000ffff)));
+		put(14, InstructionFmt.I, (sim, p) -> //xori
+			sim.gpr.set(p[1], sim.gpr.get(p[0]) ^ (p[2] & 0x0000ffff)));
 		
-		instructionMap[15] = new Instruction(InstructionFmt.I, (sim, p) -> //lui
-			sim.reg.set(p[1], p[2] << 16));
+		put(15, InstructionFmt.I, (sim, p) -> //lui
+			sim.gpr.set(p[1], p[2] << 16));
 
-		instructionMap[16] = null;
-		instructionMap[17] = null;
-		instructionMap[18] = null;
-		instructionMap[19] = null;
+		put(16, null, Instruction.RESERVED);
+		put(17, null, Instruction.RESERVED);
+		put(18, null, Instruction.RESERVED);
+		put(19, null, Instruction.RESERVED);
 		
-		instructionMap[20] = new Instruction(InstructionFmt.I, (sim, p) -> { //beql
-			if(sim.reg.get(p[0]) == sim.reg.get(p[1]))
+		put(20, InstructionFmt.I, (sim, p) -> { //beql
+			if(sim.gpr.get(p[0]) == sim.gpr.get(p[1]))
 				sim.scheduleRelativeJump((p[2] + 1) << 2);
 			else
 				sim.scheduleRelativeJump(8, 12);
 		});
 
-		instructionMap[21] = new Instruction(InstructionFmt.I, (sim, p) -> { //bnel
-			if(sim.reg.get(p[0]) != sim.reg.get(p[1]))
+		put(21, InstructionFmt.I, (sim, p) -> { //bnel
+			if(sim.gpr.get(p[0]) != sim.gpr.get(p[1]))
 				sim.scheduleRelativeJump((p[2] + 1) << 2);
 			else
 				sim.scheduleRelativeJump(8, 12);
 		});
 		
-		instructionMap[22] = new Instruction(InstructionFmt.I, (sim, p) -> { //blezl
-			if(sim.reg.get(p[0]) <= 0)
+		put(22, InstructionFmt.I, (sim, p) -> { //blezl
+			if(sim.gpr.get(p[0]) <= 0)
 				sim.scheduleRelativeJump((p[2] + 1) << 2);
 			else
 				sim.scheduleRelativeJump(8, 12);
 		});
 
-		instructionMap[23] = new Instruction(InstructionFmt.I, (sim, p) -> { //bgtzl
-			if(sim.reg.get(p[0]) > 0)
+		put(23, InstructionFmt.I, (sim, p) -> { //bgtzl
+			if(sim.gpr.get(p[0]) > 0)
 				sim.scheduleRelativeJump((p[2] + 1) << 2);
 			else
 				sim.scheduleRelativeJump(8, 12);
 		});
 		
-		instructionMap[24] = null;
-		instructionMap[25] = null;
-		instructionMap[26] = null;
-		instructionMap[27] = null;
-		instructionMap[28] = new Instruction(InstructionFmt.R, OpSpecial2.executor);
-		instructionMap[29] = null;
-		instructionMap[30] = null;
-		instructionMap[31] = null;
+		put(24, null, Instruction.RESERVED);
+		put(25, null, Instruction.RESERVED);
+		put(26, null, Instruction.RESERVED);
+		put(27, null, Instruction.RESERVED);
+		put(28, InstructionFmt.R, OpSpecial2.executor);
+		put(29, null, Instruction.RESERVED);
+		put(30, null, Instruction.RESERVED);
+		put(31, null, Instruction.RESERVED);
 		
-		instructionMap[32] = new Instruction(InstructionFmt.I, (sim, p) -> //lb
-			sim.reg.set(p[1], sim.mem.readByte(sim.reg.get(p[0]) + p[2])));
-		instructionMap[33] = new Instruction(InstructionFmt.I, (sim, p) -> //lh
-			sim.reg.set(p[1], sim.mem.readHalfWord(sim.reg.get(p[0]) + p[2])));
-		instructionMap[34] = new Instruction(InstructionFmt.I, (sim, p) -> //lwl
-			sim.reg.set(p[1], sim.mem.readLeft(sim.reg.get(p[0]) + p[2], sim.reg.get(p[1]))));
-		instructionMap[35] = new Instruction(InstructionFmt.I, (sim, p) -> //lw
-			sim.reg.set(p[1], sim.mem.readWord(sim.reg.get(p[0]) + p[2])));
-		instructionMap[36] = new Instruction(InstructionFmt.I, (sim, p) -> //lbu
-			sim.reg.set(p[1], sim.mem.readByteUnsigned(sim.reg.get(p[0]) + p[2])));
-		instructionMap[37] = new Instruction(InstructionFmt.I, (sim, p) -> //lhu
-			sim.reg.set(p[1], sim.mem.readHalfWordUnsigned(sim.reg.get(p[0]) + p[2])));
-		instructionMap[38] = new Instruction(InstructionFmt.I, (sim, p) -> //lwr
-			sim.reg.set(p[1], sim.mem.readRight(sim.reg.get(p[0]) + p[2], sim.reg.get(p[1]))));
-		instructionMap[39] = null;
+		//TODO: Add address translation for load/store
+		put(32, InstructionFmt.I, (sim, p) -> //lb
+			sim.gpr.set(p[1], sim.mem.readByte(sim.gpr.get(p[0]) + p[2])));
+		put(33, InstructionFmt.I, (sim, p) -> //lh
+			sim.gpr.set(p[1], sim.mem.readHalfWord(sim.gpr.get(p[0]) + p[2])));
+		put(34, InstructionFmt.I, (sim, p) -> //lwl
+			sim.gpr.set(p[1], sim.mem.readLeft(sim.gpr.get(p[0]) + p[2], sim.gpr.get(p[1]))));
+		put(35, InstructionFmt.I, (sim, p) -> //lw
+			sim.gpr.set(p[1], sim.mem.readWord(sim.gpr.get(p[0]) + p[2])));
+		put(36, InstructionFmt.I, (sim, p) -> //lbu
+			sim.gpr.set(p[1], sim.mem.readByteUnsigned(sim.gpr.get(p[0]) + p[2])));
+		put(37, InstructionFmt.I, (sim, p) -> //lhu
+			sim.gpr.set(p[1], sim.mem.readHalfWordUnsigned(sim.gpr.get(p[0]) + p[2])));
+		put(38, InstructionFmt.I, (sim, p) -> //lwr
+			sim.gpr.set(p[1], sim.mem.readRight(sim.gpr.get(p[0]) + p[2], sim.gpr.get(p[1]))));
+		put(39, null, Instruction.RESERVED);
 		
-		instructionMap[40] = new Instruction(InstructionFmt.I, (sim, p) -> //sb
-			sim.mem.writeByte(sim.reg.get(p[0]) + p[2], sim.reg.get(p[1])));
-		instructionMap[41] = new Instruction(InstructionFmt.I, (sim, p) -> //sh
-			sim.mem.writeHalfWord(sim.reg.get(p[0]) + p[2], sim.reg.get(p[1])));
-		instructionMap[42] = new Instruction(InstructionFmt.I, (sim, p) -> //swl
-			sim.mem.writeLeft(sim.reg.get(p[0]) + p[2], sim.reg.get(p[1])));
-		instructionMap[43] = new Instruction(InstructionFmt.I, (sim, p) -> //sw
-			sim.mem.writeWord(sim.reg.get(p[0]) + p[2], sim.reg.get(p[1])));
-		instructionMap[44] = null;
-		instructionMap[45] = null;
-		instructionMap[46] = new Instruction(InstructionFmt.I, (sim, p) -> //swr
-			sim.mem.writeRight(sim.reg.get(p[0]) + p[2], sim.reg.get(p[1])));
-		instructionMap[47] = unimplemented;//cache, mark as unimplemented.
+		put(40, InstructionFmt.I, (sim, p) -> //sb
+			sim.mem.writeByte(sim.gpr.get(p[0]) + p[2], sim.gpr.get(p[1])));
+		put(41, InstructionFmt.I, (sim, p) -> //sh
+			sim.mem.writeHalfWord(sim.gpr.get(p[0]) + p[2], sim.gpr.get(p[1])));
+		put(42, InstructionFmt.I, (sim, p) -> //swl
+			sim.mem.writeLeft(sim.gpr.get(p[0]) + p[2], sim.gpr.get(p[1])));
+		put(43, InstructionFmt.I, (sim, p) -> //sw
+			sim.mem.writeWord(sim.gpr.get(p[0]) + p[2], sim.gpr.get(p[1])));
+		put(44, null, Instruction.RESERVED);
+		put(45, null, Instruction.RESERVED);
+		put(46, InstructionFmt.I, (sim, p) -> //swr
+			sim.mem.writeRight(sim.gpr.get(p[0]) + p[2], sim.gpr.get(p[1])));
+		put(47, null, Instruction.UNIMPLEMENTED);//cache, mark as unimplemented.
 		
 		for(int i = 48; i < 64; i++)
-			instructionMap[i] = unimplemented;
+			put(i, null, Instruction.UNIMPLEMENTED);
 		
+	}
+	
+	private static void put(int index, InstructionFmt format, Instruction instr)
+	{
+		instructionMap[index] = instr;
+		formatMap[index] = format;
 	}
 }

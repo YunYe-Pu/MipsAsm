@@ -84,7 +84,7 @@ public class SimulatePerspective extends BorderPane
 		
 		this.bottomPane = new TabPane();
 		this.memPane = new MemoryEditPane(this.simulator.mem);
-		this.regPane = new RegisterEditPane(this.simulator.reg);
+		this.regPane = new RegisterEditPane(this.simulator.gpr);
 		this.bottomPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 		this.bottomPane.getTabs().addAll(new Tab("Memory", this.memPane), new Tab("Register", this.regPane));
 		

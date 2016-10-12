@@ -113,7 +113,7 @@ public class Directives
 			assembler.setInitAddr(operands[0].getEncoding());
 		}
 		else
-			throw new AsmError("", ".init directive can only be used at the beginning of assembly code.");
+			throw new AsmError("Directive error", ".init directive can only be used at the beginning of assembly code.");
 	};
 	
 	private static final HashMap<String, InstructionParser> handlerMap = new HashMap<>();

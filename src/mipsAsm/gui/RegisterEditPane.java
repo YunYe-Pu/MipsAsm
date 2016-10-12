@@ -1,7 +1,7 @@
 package mipsAsm.gui;
 
 import mipsAsm.disassembler.util.OpFormatter;
-import mipsAsm.simulator.util.RegisterFile;
+import mipsAsm.simulator.RegisterFile;
 
 public class RegisterEditPane extends EditableHexWordGrid
 {

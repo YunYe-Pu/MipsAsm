@@ -1,4 +1,4 @@
-package mipsAsm.simulator.util;
+package mipsAsm.simulator;
 
 public class RegisterFile
 {

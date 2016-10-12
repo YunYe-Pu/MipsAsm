@@ -57,7 +57,9 @@ public enum BinaryType
 				{
 					while(s.available() > 0)
 					{
-						data = data << 4 | (charToInt(s.read()) & 0xf);
+						int c = s.read();
+						if(c == 10 || c == 13) continue;
+						data = data << 4 | (charToInt(c) & 0xf);
 						count++;
 						if(count == 8)
 						{
