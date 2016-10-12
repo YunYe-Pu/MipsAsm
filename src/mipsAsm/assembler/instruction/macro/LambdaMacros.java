@@ -27,18 +27,39 @@ public final class LambdaMacros
 	public static final InstructionParser LI = (operands, warningHandler, instrList) ->
 	{
 		OperandFmt.RI.matches(operands);
-		Operand[] opLUI = new Operand[3];
-		opLUI[0] = new OpConstant(0);
-		opLUI[1] = operands[0];
-		opLUI[2] = new OpSplit(operands[1], 16);
-		
-		Operand[] opORI = new Operand[3];
-		opORI[0] = operands[0];
-		opORI[1] = operands[0];
-		opORI[2] = new OpSplit(operands[1], 0);
-		
-		instrList.add(InstructionFmt.I.newInstance(0x0f, opLUI, null, warningHandler));
-		instrList.add(InstructionFmt.I.newInstance(0x0d, opORI, null, warningHandler));
+		int value = operands[1].getEncoding();
+		//Use ORI or ADDIU if the immediate fits in a 16-bit field.
+		if((value & 0xffff0000) == 0)
+		{
+			Operand[] opORI = new Operand[3];
+			opORI[0] = new OpConstant(0);
+			opORI[1] = operands[0];
+			opORI[2] = operands[1];
+			instrList.add(InstructionFmt.I.newInstance(0x0d, opORI, null, warningHandler));
+		}
+		else if((value & 0xffff8000) == 0xffff8000)
+		{
+			Operand[] opADDIU = new Operand[3];
+			opADDIU[0] = new OpConstant(0);
+			opADDIU[1] = operands[0];
+			opADDIU[2] = operands[1];
+			instrList.add(InstructionFmt.I.newInstance(0x09, opADDIU, null, warningHandler));
+		}
+		else
+		{
+			Operand[] opLUI = new Operand[3];
+			opLUI[0] = new OpConstant(0);
+			opLUI[1] = operands[0];
+			opLUI[2] = new OpSplit(operands[1], 16);
+			
+			Operand[] opORI = new Operand[3];
+			opORI[0] = operands[0];
+			opORI[1] = operands[0];
+			opORI[2] = new OpSplit(operands[1], 0);
+			
+			instrList.add(InstructionFmt.I.newInstance(0x0f, opLUI, null, warningHandler));
+			instrList.add(InstructionFmt.I.newInstance(0x0d, opORI, null, warningHandler));
+		}
 	};
 	
 	public static final InstructionParser LA = (operands, warningHandler, instrList) ->
