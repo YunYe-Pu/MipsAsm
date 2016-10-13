@@ -11,16 +11,20 @@ public class Simulator
 {
 	private int programCounter;
 	private int currInstr;
-	private int[] scheduledPC = new int[2];
+	private int scheduledPC0, scheduledPC1;
+	private boolean currInDelaySlot, nextInDelaySlot;
 	
 	public final RegisterFile gpr = new RegisterFile();
 	public final CP0RegisterFile cp0 = new CP0RegisterFile();
 	public final Memory mem = new Memory();
+	public final TLB tlb = new TLB();
 	public int regHI = 0;
 	public int regLO = 0;
 
 	private int[] programData;
 	private int initPC;
+	
+	@Deprecated
 	private SimExceptionCode pendingException;
 	
 	public static final Predicate<Simulator> pcOutofRange = sim -> {
@@ -30,7 +34,7 @@ public class Simulator
 	
 	public static final Predicate<Simulator> exceptionOccur = sim -> sim.pendingException != null;
 	
-	
+	@Deprecated
 	public void clear()
 	{
 		this.programCounter = 0;
@@ -39,18 +43,31 @@ public class Simulator
 		this.regHI = this.regLO = 0;
 	}
 	
+	@Deprecated
 	public void resetSimProgress()
 	{
 		this.gpr.clear();
 		this.mem.clear();
 		this.mem.loadProgram(this.programData);
 		this.programCounter = this.initPC;
-		this.scheduledPC[0] = this.programCounter + 4;
-		this.scheduledPC[1] = this.programCounter + 8;
+		this.scheduledPC0 = this.programCounter + 4;
+		this.scheduledPC1 = this.programCounter + 8;
+		this.currInDelaySlot = this.nextInDelaySlot = false;
 		this.currInstr = this.programData[0];
 		this.pendingException = null;
 	}
 	
+	public void signalColdReset()
+	{
+		//TODO
+	}
+	
+	public void signalInterrupt(int intNumber)
+	{
+		//TODO
+	}
+	
+	@Deprecated
 	public void loadProgram(int[] programData, int initPC)
 	{
 		System.out.println("Load program, init PC = " + initPC);
@@ -59,24 +76,25 @@ public class Simulator
 		this.resetSimProgress();
 	}
 	
-	public SimExceptionCode step()
+	public void step()
 	{
-		this.pendingException = null;
 		try
 		{
+			this.programCounter = this.scheduledPC0;
+			this.scheduledPC0 = this.scheduledPC1;
+			this.scheduledPC1 += 4;
+			this.currInDelaySlot = this.nextInDelaySlot;
+			this.nextInDelaySlot = false;
+			if((this.programCounter & 3) != 0)
+				this.signalException(SimExceptionCode.AddressError_L, this.programCounter);
+			int pAddr = this.tlb.addressTranslation(this, this.programCounter, false);
+			this.currInstr = this.mem.readWord(pAddr);
 			Instructions.execute(this, this.currInstr);
 		}
 		catch(SimException e)
 		{
-			// TODO Auto-generated catch block
+			e.excCode.process(this, e.param);
 		}
-
-		this.programCounter = this.scheduledPC[0];
-		this.scheduledPC[0] = this.scheduledPC[1];
-		this.scheduledPC[1] += 4;
-		//TODO Add address translation
-		this.currInstr = this.mem.readWord(this.programCounter);
-		return this.pendingException;
 	}
 	
 	public void runUntil(Predicate<Simulator> terminateCondition)
@@ -85,20 +103,26 @@ public class Simulator
 			this.step();
 	}
 	
+	@Deprecated
 	public SimExceptionCode getLastException()
 	{
 		return this.pendingException;
 	}
 	
+	@Deprecated
 	public void clearException()
 	{
 		this.pendingException = null;
 	}
 	
-	public void signalException(SimExceptionCode exceptionCode, int... params) throws SimException
+	public void signalException(SimExceptionCode exceptionCode, int param) throws SimException
 	{
-		//TODO
-		this.pendingException = exceptionCode;
+		throw new SimException(exceptionCode, param);
+	}
+	
+	public void signalException(SimExceptionCode exceptionCode) throws SimException
+	{
+		this.signalException(exceptionCode, 0);
 	}
 	
 	//Since MIPS processors introduce the concept of branch delay slot, the program counter
@@ -106,29 +130,36 @@ public class Simulator
 	
 	public void scheduleRelativeJump(int offset1, int offset2)
 	{
-		this.scheduledPC[0] = this.programCounter + (offset1 & -4);
-		this.scheduledPC[1] = this.programCounter + (offset2 & -4);
+		this.scheduledPC0 = this.programCounter + (offset1 & -4);
+		this.scheduledPC1 = this.programCounter + (offset2 & -4);
 	}
 	
 	public void scheduleRelativeJump(int offset2)
 	{
-		this.scheduledPC[1] = this.programCounter + (offset2 & -4);
+		this.scheduledPC1 = this.programCounter + (offset2 & -4);
+		this.nextInDelaySlot = true;
 	}
 	
 	public void scheduleAbsoluteJump(int addr1, int addr2, int mask)
 	{
-		this.scheduledPC[0] = (this.programCounter & ~mask) | (addr1 & mask & -4);
-		this.scheduledPC[1] = (this.programCounter & ~mask) | (addr2 & mask & -4);
+		this.scheduledPC0 = (this.programCounter & ~mask) | (addr1 & mask & -4);
+		this.scheduledPC1 = (this.programCounter & ~mask) | (addr2 & mask & -4);
 	}
 	
 	public void scheduleAbsoluteJump(int addr2, int mask)
 	{
-		this.scheduledPC[1] = (this.programCounter & ~mask) | (addr2 & mask & -4);
+		this.scheduledPC1 = (this.programCounter & ~mask) | (addr2 & mask & -4);
+		this.nextInDelaySlot = true;
 	}
 	
 	public int getPC()
 	{
 		return this.programCounter;
+	}
+	
+	public boolean inDelaySlot()
+	{
+		return this.currInDelaySlot;
 	}
 	
 	public int getCurrInstruction()

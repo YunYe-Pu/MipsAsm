@@ -24,10 +24,14 @@ public class InstructionFmt
 	public static final InstructionFmt MFTC0 = new InstructionFmt(5, 5, 5, 8, 3);
 	
 	private final int[] fieldLength;
+	
+	//Used in splitBinary method as return value, to avoid allocating more arrays.
+	private final int[] param;
 
 	public InstructionFmt(int... field)
 	{
 		this.fieldLength = field;
+		this.param = new int[field.length];
 	}
 	
 	/**
@@ -56,7 +60,18 @@ public class InstructionFmt
 	
 	public int[] splitBinary(int opField)
 	{
-		int[] ret = new int[this.fieldLength.length];
+		int[] ret = this.param;
+		for(int i = this.fieldLength.length - 1; i >= 0; i--)
+		{
+			ret[i] = opField & ((1 << this.fieldLength[i]) - 1);
+			ret[i] = (ret[i] << (32 - this.fieldLength[i])) >> (32 - this.fieldLength[i]);//sign extend
+			opField >>= this.fieldLength[i];
+		}
+		return ret;
+	}
+	
+	public int[] splitBinary(int opField, int[] ret)
+	{
 		for(int i = this.fieldLength.length - 1; i >= 0; i--)
 		{
 			ret[i] = opField & ((1 << this.fieldLength[i]) - 1);

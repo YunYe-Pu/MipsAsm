@@ -1,8 +1,15 @@
 package mipsAsm.simulator;
 
 import mipsAsm.simulator.util.SimException;
-import mipsAsm.simulator.util.SimExceptionCode;
 
+import static mipsAsm.simulator.util.SimExceptionCode.*;
+
+/**
+ * Address translation unit: Translation Look-aside Buffer with 32 entries.
+ * Written according to MIPS32 Architecture Vol.3
+ * 
+ * @author YunYe Pu
+ */
 public class TLB
 {
 	private final TLBEntry[] entries = new TLBEntry[32];
@@ -18,10 +25,11 @@ public class TLB
 	
 	public int addressTranslation(Simulator simulator, int vAddr, boolean write) throws SimException
 	{
-		boolean kernelMode = (simulator.cp0.hardGet(12) & 0x10) == 0;
-		if((vAddr & 0x80000000) != 0 && !kernelMode)//Trying to access kernel address space in user mode
-			simulator.signalException(write? SimExceptionCode.AddressError_S: SimExceptionCode.AddressError_L, vAddr);
+		if((vAddr & 0x80000000) != 0 && simulator.cp0.inUserMode())//Trying to access kernel address space in user mode
+			simulator.signalException(write? AddressError_S: AddressError_L, vAddr);
 		if((vAddr & 0xc0000000) == 0x80000000)//0x80000000 to 0xbfffffff, unmapped
+			return vAddr;
+		if((vAddr & 0xe0000000) == 0 && (simulator.cp0.hardGet(12) & 0b100) != 0)//0x00000000 to 0x1fffffff is unmapped if ERL bit in Cause register is set.
 			return vAddr;
 		int i = 0;
 		int temp = simulator.cp0.hardGet(10) & 0xff;
@@ -31,7 +39,7 @@ public class TLB
 				break;
 		}
 		if(i == 32)
-			simulator.signalException(write? SimExceptionCode.TLB_S: SimExceptionCode.TLB_L, vAddr);
+			simulator.signalException(write? TLBRefill_S: TLBRefill_L, vAddr);
 		temp = entries[i].translate(simulator, vAddr, write);
 		int j = 0;
 		for(; j < 32; j++)
@@ -152,17 +160,17 @@ public class TLB
 			if((vAddr & m & ~(m >> 1)) == 0)
 			{
 				if(!this.v0)
-					sim.signalException(write? SimExceptionCode.TLB_S: SimExceptionCode.TLB_L, vAddr);
+					sim.signalException(write? TLBInvalid_S: TLBInvalid_L, vAddr);
 				if(write & !this.d0)
-					sim.signalException(SimExceptionCode.TLBModified, vAddr);
+					sim.signalException(TLBModified, vAddr);
 				return (vAddr & ~m) | (this.pfn0 & m);
 			}
 			else
 			{
 				if(!this.v1)
-					sim.signalException(write? SimExceptionCode.TLB_S: SimExceptionCode.TLB_L, vAddr);
+					sim.signalException(write? TLBInvalid_S: TLBInvalid_L, vAddr);
 				if(write & !this.d1)
-					sim.signalException(SimExceptionCode.TLBModified, vAddr);
+					sim.signalException(TLBModified, vAddr);
 				return (vAddr & ~m) | (this.pfn1 & m);
 			}
 		}

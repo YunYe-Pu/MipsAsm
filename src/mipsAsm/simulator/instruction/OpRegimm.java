@@ -1,6 +1,6 @@
 package mipsAsm.simulator.instruction;
 
-import mipsAsm.simulator.util.SimExceptionCode;
+import static mipsAsm.simulator.util.SimExceptionCode.*;
 
 public final class OpRegimm
 {
@@ -34,22 +34,22 @@ public final class OpRegimm
 				sim.scheduleRelativeJump(8, 12);};
 		
 		executors[8] = (sim, p) -> {//tgei
-			if(sim.gpr.get(p[0]) >= p[2]) sim.signalException(SimExceptionCode.Trap);};
+			if(sim.gpr.get(p[0]) >= p[2]) sim.signalException(Trap);};
 		
 		executors[9] = (sim, p) -> {//tgeiu
-			if(((long)sim.gpr.get(p[0]) & 0xffffffffL) >= ((long)p[2] & 0xffffffffL)) sim.signalException(SimExceptionCode.Trap);};
+			if(((long)sim.gpr.get(p[0]) & 0xffffffffL) >= ((long)p[2] & 0xffffffffL)) sim.signalException(Trap);};
 		
 		executors[10] = (sim, p) -> {//tlti
-			if(sim.gpr.get(p[0]) < p[2]) sim.signalException(SimExceptionCode.Trap);};
+			if(sim.gpr.get(p[0]) < p[2]) sim.signalException(Trap);};
 		
 		executors[11] = (sim, p) -> {//tltiu
-			if(((long)sim.gpr.get(p[0]) & 0xffffffffL) < ((long)p[2] & 0xffffffffL)) sim.signalException(SimExceptionCode.Trap);};
+			if(((long)sim.gpr.get(p[0]) & 0xffffffffL) < ((long)p[2] & 0xffffffffL)) sim.signalException(Trap);};
 		
 		executors[12] = (sim, p) -> {//teqi
-			if(sim.gpr.get(p[0]) == p[2]) sim.signalException(SimExceptionCode.Trap);};
+			if(sim.gpr.get(p[0]) == p[2]) sim.signalException(Trap);};
 
 		executors[14] = (sim, p) -> {//tnei
-			if(sim.gpr.get(p[0]) != p[2]) sim.signalException(SimExceptionCode.Trap);};
+			if(sim.gpr.get(p[0]) != p[2]) sim.signalException(Trap);};
 
 		executors[16] = (sim, p) -> {//bltzal
 			if(sim.gpr.get(p[0]) < 0)

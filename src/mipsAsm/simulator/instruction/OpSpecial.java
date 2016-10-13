@@ -1,6 +1,6 @@
 package mipsAsm.simulator.instruction;
 
-import mipsAsm.simulator.util.SimExceptionCode;
+import static mipsAsm.simulator.util.SimExceptionCode.*;
 
 public final class OpSpecial
 {
@@ -49,10 +49,10 @@ public final class OpSpecial
 			if(sim.gpr.get(p[1]) != 0) sim.gpr.set(p[2], sim.gpr.get(p[0]));};
 		
 		executors[12] = (sim, p) -> //syscall
-			sim.signalException(SimExceptionCode.SystemCall);
+			sim.signalException(SystemCall);
 		
 		executors[13] = (sim, p) -> //break
-			sim.signalException(SimExceptionCode.Breakpoint);
+			sim.signalException(Breakpoint);
 		
 		executors[14] = Instruction.RESERVED;
 		
@@ -109,7 +109,7 @@ public final class OpSpecial
 		executors[32] = (sim, p) -> { //add
 			int rs = sim.gpr.get(p[0]), rt = sim.gpr.get(p[1]), rd = rs + rt;
 			if((rs > 0 && rt > 0 && rd < 0) || (rs < 0 && rt < 0 && rd > 0))
-				sim.signalException(SimExceptionCode.IntegerOverflow);
+				sim.signalException(IntegerOverflow);
 			else
 				sim.gpr.set(p[2], rd);
 		};
@@ -120,7 +120,7 @@ public final class OpSpecial
 		executors[34] = (sim, p) -> { //sub
 			int rs = sim.gpr.get(p[0]), rt = sim.gpr.get(p[1]), rd = rs - rt;
 			if((rs > 0 && rt < 0 && rd < 0) || (rs < 0 && rt > 0 && rd > 0))
-				sim.signalException(SimExceptionCode.IntegerOverflow);
+				sim.signalException(IntegerOverflow);
 			else
 				sim.gpr.set(p[2], rd);
 		};
@@ -155,24 +155,24 @@ public final class OpSpecial
 		executors[47] = Instruction.RESERVED;
 		
 		executors[48] = (sim, p) -> { //tge
-			if(sim.gpr.get(p[0]) >= sim.gpr.get(p[1])) sim.signalException(SimExceptionCode.Trap);};
+			if(sim.gpr.get(p[0]) >= sim.gpr.get(p[1])) sim.signalException(Trap);};
 		
 		executors[49] = (sim, p) -> { //tgeu
 			if(((long)sim.gpr.get(p[0]) & 0xffffffffL) >= ((long)sim.gpr.get(p[1]) & 0xffffffffL))
-				sim.signalException(SimExceptionCode.Trap);};
+				sim.signalException(Trap);};
 
 		executors[50] = (sim, p) -> { //tlt
-			if(sim.gpr.get(p[0]) < sim.gpr.get(p[1])) sim.signalException(SimExceptionCode.Trap);};
+			if(sim.gpr.get(p[0]) < sim.gpr.get(p[1])) sim.signalException(Trap);};
 
 		executors[51] = (sim, p) -> { //tltu
 			if(((long)sim.gpr.get(p[0]) & 0xffffffffL) < ((long)sim.gpr.get(p[1]) & 0xffffffffL))
-				sim.signalException(SimExceptionCode.Trap);};
+				sim.signalException(Trap);};
 
 		executors[52] = (sim, p) -> { //teq
-			if(sim.gpr.get(p[0]) == sim.gpr.get(p[1])) sim.signalException(SimExceptionCode.Trap);};
+			if(sim.gpr.get(p[0]) == sim.gpr.get(p[1])) sim.signalException(Trap);};
 		executors[53] = Instruction.RESERVED;
 		executors[54] = (sim, p) -> { //tne
-			if(sim.gpr.get(p[0]) != sim.gpr.get(p[1])) sim.signalException(SimExceptionCode.Trap);};
+			if(sim.gpr.get(p[0]) != sim.gpr.get(p[1])) sim.signalException(Trap);};
 		executors[55] = Instruction.RESERVED;
 		
 		for(int i = 56; i < 64; i++)

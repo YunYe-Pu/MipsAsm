@@ -3,13 +3,16 @@ package mipsAsm.simulator.instruction;
 import mipsAsm.assembler.util.InstructionFmt;
 import mipsAsm.simulator.Simulator;
 import mipsAsm.simulator.util.SimException;
-import mipsAsm.simulator.util.SimExceptionCode;
+
+import static mipsAsm.simulator.util.SimExceptionCode.*;
 
 public class Instructions
 {
 
 	private static final Instruction[] instructionMap = new Instruction[64];
 	private static final InstructionFmt[] formatMap = new InstructionFmt[64];
+	
+	private static final int[] param = new int[10];
 	
 	public static void execute(Simulator simulator, int instruction) throws SimException
 	{
@@ -18,7 +21,7 @@ public class Instructions
 			instructionMap[(instruction >> 26) & 63].execute(simulator, null);
 		else
 		{
-			int[] param = format.splitBinary(instruction);
+			format.splitBinary(instruction, param);
 			instructionMap[(instruction >> 26) & 63].execute(simulator, param);
 		}
 	}
@@ -55,7 +58,7 @@ public class Instructions
 		put(8, InstructionFmt.I, (sim, p) -> {//addi
 			int rs = sim.gpr.get(p[0]), rt = rs + p[2];
 			if((rs > 0 && p[2] > 0 && rt < 0) || (rs < 0 && p[2] < 0 && rt > 0))
-				sim.signalException(SimExceptionCode.IntegerOverflow);
+				sim.signalException(IntegerOverflow);
 			else
 				sim.gpr.set(p[1], rt);
 		});
@@ -81,7 +84,7 @@ public class Instructions
 		put(15, InstructionFmt.I, (sim, p) -> //lui
 			sim.gpr.set(p[1], p[2] << 16));
 
-		put(16, null, Instruction.RESERVED);
+		put(16, InstructionFmt.J, OpCp0.executor);
 		put(17, null, Instruction.RESERVED);
 		put(18, null, Instruction.RESERVED);
 		put(19, null, Instruction.RESERVED);
@@ -124,10 +127,17 @@ public class Instructions
 		put(31, null, Instruction.RESERVED);
 		
 		//TODO: Add address translation for load/store
-		put(32, InstructionFmt.I, (sim, p) -> //lb
-			sim.gpr.set(p[1], sim.mem.readByte(sim.gpr.get(p[0]) + p[2])));
-		put(33, InstructionFmt.I, (sim, p) -> //lh
-			sim.gpr.set(p[1], sim.mem.readHalfWord(sim.gpr.get(p[0]) + p[2])));
+		put(32, InstructionFmt.I, (sim, p) -> {//lb
+			int addr = sim.tlb.addressTranslation(sim, sim.gpr.get(p[0]) + p[2], false);
+			sim.gpr.set(p[1], sim.mem.readByte(addr));
+		});
+		put(33, InstructionFmt.I, (sim, p) -> {//lh
+			int addr = sim.gpr.get(p[0]) + p[2];
+			if((addr & 1) != 0)
+				sim.signalException(AddressError_L, addr);
+			addr = sim.tlb.addressTranslation(sim, addr, false);
+			sim.gpr.set(p[1], sim.mem.readHalfWord(addr));
+		});
 		put(34, InstructionFmt.I, (sim, p) -> //lwl
 			sim.gpr.set(p[1], sim.mem.readLeft(sim.gpr.get(p[0]) + p[2], sim.gpr.get(p[1]))));
 		put(35, InstructionFmt.I, (sim, p) -> //lw
