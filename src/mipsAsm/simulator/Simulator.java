@@ -106,6 +106,8 @@ public class Simulator
 		}
 		if(this.cp0.hardGet(9) == this.cp0.hardGet(11))
 			bits |= 0x80;
+		if((this.cp0.hardGet(12) & 7) != 1)//StatusIE=1,statusEXL=0,statusERL=0
+			return;
 		bits &= ((this.cp0.hardGet(12) >> 8) & 0xff);
 		if(bits != 0)
 			this.signalException(SimExceptionCode.Interrupt, bits);

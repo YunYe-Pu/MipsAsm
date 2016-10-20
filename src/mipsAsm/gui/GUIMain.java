@@ -184,7 +184,6 @@ public class GUIMain extends Application
 		this.editDisplayed.set(true);
 		this.scene.setRoot(this.editPane);
 		this.editPane.onEditorTabChange();
-		System.gc();
 	}
 	
 	protected void closeWindow()
@@ -194,6 +193,11 @@ public class GUIMain extends Application
 	
 	protected boolean onCloseRequest()
 	{
+		if(!this.editDisplayed.get())
+		{
+			if(!this.simPane.onCloseRequest())
+				return false;
+		}
 		this.scene.setRoot(this.editPane);
 		this.editPane.onEditorTabChange();
 		return this.editPane.closeAllTabs();

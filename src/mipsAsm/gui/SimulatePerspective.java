@@ -35,24 +35,20 @@ public class SimulatePerspective extends BorderPane
 {
 	private final Simulator simulator;
 	
-//	public int simRunLevel;
-	
+	private final MenuBar menuBar;
+	private final Menu[] menus;
+	private final MenuItem[][] menuItems;
+
 	private final TabPane mainPane;
 	private final Label statusLabel;
 
 	private final BorderPane debugPane;
 	private final TextArea monitor;
 	
-
-//	private SimpleBooleanProperty outsideProgBound = new SimpleBooleanProperty(false);
 	private SimpleBooleanProperty simRunning = new SimpleBooleanProperty(false);
 	private boolean simInterrupted = false;
 	private SimThread simulatorThread;
 	private MonitorRedrawThread redrawThread;
-//	private boolean simInterrupted = false;
-	
-//	private final Label[] sidePaneLabels;
-//	private final VBox sidePane;
 	
 	//GUI components in debug pane
 	private final TabPane bottomPane;
@@ -65,14 +61,10 @@ public class SimulatePerspective extends BorderPane
 	private final VBox sidePane;
 	private final Label[] sidePaneLabels;
 	
-	private final MenuBar menuBar;
-	private final Menu[] menus;
-	private final MenuItem[][] menuItems;
 	
 	private static final Alert disassemblePrompt = new Alert(AlertType.ERROR, "Wrong file format for binary.", ButtonType.OK);
-//	private static final Alert simPrompt = new Alert(AlertType.INFORMATION, "Program counter has reached the boundary of program data."
-//			+ " The run operation will be unavailable from now on.", ButtonType.OK);
-	private static final TextInputDialog offsetInputDialog = new TextInputDialog("0");
+	private static final Alert exitPrompt = new Alert(AlertType.INFORMATION, "Simulation is running.\nPlease pause it before exit.", ButtonType.OK);
+	private static final TextInputDialog offsetInputDialog = new TextInputDialog("bfc00000");
 
 	static
 	{
@@ -125,18 +117,16 @@ public class SimulatePerspective extends BorderPane
 		this.monitor.fontProperty().bind(GUIMain.instance.editorFont);
 		this.monitor.setEditable(false);
 		this.monitor.setOnKeyPressed(e -> this.onMonitorKeyPress(e));
-//		this.monitor.disableProperty().bind(this.simRunning.not());
 		
 		this.debugPane = new BorderPane();
 		this.debugPane.setCenter(this.disassemblyContent);
 		this.debugPane.setRight(this.sidePane);
 		this.debugPane.setBottom(this.bottomPane);
-//		this.debugPane.disableProperty().bind(this.simRunning);
 		
 		this.mainPane = new TabPane();
 		this.mainPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 		this.mainPane.getTabs().addAll(new Tab("Monitor", this.monitor), new Tab("Debug", this.debugPane));
-		
+
 		this.setTop(this.menuBar);
 		this.setCenter(this.mainPane);
 		this.setBottom(this.statusLabel);
@@ -157,7 +147,6 @@ public class SimulatePerspective extends BorderPane
 		this.menuItems[1][0] = MenuHelper.item("Step", e -> this.onStep(), b2, KeyCode.F5);
 		this.menuItems[1][1] = MenuHelper.item("Run", e -> this.onRun(), b2, KeyCode.F6);
 		this.menuItems[1][2] = MenuHelper.item("Pause", e -> this.onPause(), b1.or(this.simRunning.not()), KeyCode.F7);
-//		this.menuItems[1][2].setDisable(true);
 		this.menuItems[1][3] = new SeparatorMenuItem();
 		this.menuItems[1][4] = MenuHelper.item("Reset", e -> this.onReset(), b1, "R", KeyCombination.SHORTCUT_DOWN);
 		this.menuItems[1][5] = MenuHelper.item("Clear", e -> this.onClear(), b2);
@@ -265,6 +254,7 @@ public class SimulatePerspective extends BorderPane
 	{
 		this.simulator.step();
 		this.redraw();
+		this.monitor.setText(this.drawMonitor());
 	}
 	
 	private void onRun()
@@ -298,6 +288,17 @@ public class SimulatePerspective extends BorderPane
 	private void onMonitorKeyPress(KeyEvent event)
 	{
 		//TODO
+	}
+	
+	protected boolean onCloseRequest()
+	{
+		if(this.simRunning.get())
+		{
+			exitPrompt.showAndWait();
+			return false;
+		}
+		else
+			return true;
 	}
 	
 	private class SimThread extends Thread
