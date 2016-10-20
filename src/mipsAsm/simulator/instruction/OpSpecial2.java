@@ -16,13 +16,13 @@ public final class OpSpecial2
 		executors[0] = (sim, p) -> {//madd
 			long result = ((long)sim.regHI << 32) | ((long)sim.regLO & 0xffffffffL);
 			result += (long)sim.gpr.get(p[0]) * (long)sim.gpr.get(p[1]);
-			sim.setHILO((int)(result >> 32), (int)(result & 0xffffff));
+			sim.setHILO((int)(result >> 32), (int)(result & 0xffffffffL));
 		};
 		
 		executors[1] = (sim, p) -> {//maddu
 			long result = ((long)sim.regHI << 32) | ((long)sim.regLO & 0xffffffffL);
 			result += ((long)sim.gpr.get(p[0]) & 0xffffffffL) * ((long)sim.gpr.get(p[1]) & 0xffffffffL);
-			sim.setHILO((int)(result >> 32), (int)(result & 0xffffff));
+			sim.setHILO((int)(result >> 32), (int)(result & 0xffffffffL));
 		};
 		
 		executors[2] = (sim, p) -> //mul
@@ -31,13 +31,13 @@ public final class OpSpecial2
 		executors[4] = (sim, p) -> {//msub
 			long result = ((long)sim.regHI << 32) | ((long)sim.regLO & 0xffffffffL);
 			result -= (long)sim.gpr.get(p[0]) * (long)sim.gpr.get(p[1]);
-			sim.setHILO((int)(result >> 32), (int)(result & 0xffffff));
+			sim.setHILO((int)(result >> 32), (int)(result & 0xffffffffL));
 		};
 			
 		executors[5] = (sim, p) -> {//msubu
 			long result = ((long)sim.regHI << 32) | ((long)sim.regLO & 0xffffffffL);
 			result -= ((long)sim.gpr.get(p[0]) & 0xffffffffL) * ((long)sim.gpr.get(p[1]) & 0xffffffffL);
-			sim.setHILO((int)(result >> 32), (int)(result & 0xffffff));
+			sim.setHILO((int)(result >> 32), (int)(result & 0xffffffffL));
 		};
 		
 		executors[32] = (sim, p) -> //clz

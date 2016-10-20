@@ -184,6 +184,7 @@ public class GUIMain extends Application
 		this.editDisplayed.set(true);
 		this.scene.setRoot(this.editPane);
 		this.editPane.onEditorTabChange();
+		System.gc();
 	}
 	
 	protected void closeWindow()

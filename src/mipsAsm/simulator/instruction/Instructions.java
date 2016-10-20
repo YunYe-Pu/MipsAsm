@@ -6,9 +6,10 @@ import mipsAsm.simulator.util.SimException;
 
 import static mipsAsm.simulator.util.SimExceptionCode.*;
 
-public class Instructions
+public final class Instructions
 {
-
+	private Instructions() {}
+	
 	private static final Instruction[] instructionMap = new Instruction[64];
 	private static final InstructionFmt[] formatMap = new InstructionFmt[64];
 	
@@ -126,42 +127,85 @@ public class Instructions
 		put(30, null, Instruction.RESERVED);
 		put(31, null, Instruction.RESERVED);
 		
-		//TODO: Add address translation for load/store
 		put(32, InstructionFmt.I, (sim, p) -> {//lb
-			int addr = sim.tlb.addressTranslation(sim, sim.gpr.get(p[0]) + p[2], false);
+			int addr = sim.tlb.addressTranslation(sim.gpr.get(p[0]) + p[2], false);
 			sim.gpr.set(p[1], sim.mem.readByte(addr));
 		});
+		
 		put(33, InstructionFmt.I, (sim, p) -> {//lh
 			int addr = sim.gpr.get(p[0]) + p[2];
 			if((addr & 1) != 0)
 				sim.signalException(AddressError_L, addr);
-			addr = sim.tlb.addressTranslation(sim, addr, false);
+			addr = sim.tlb.addressTranslation(addr, false);
 			sim.gpr.set(p[1], sim.mem.readHalfWord(addr));
 		});
-		put(34, InstructionFmt.I, (sim, p) -> //lwl
-			sim.gpr.set(p[1], sim.mem.readLeft(sim.gpr.get(p[0]) + p[2], sim.gpr.get(p[1]))));
-		put(35, InstructionFmt.I, (sim, p) -> //lw
-			sim.gpr.set(p[1], sim.mem.readWord(sim.gpr.get(p[0]) + p[2])));
-		put(36, InstructionFmt.I, (sim, p) -> //lbu
-			sim.gpr.set(p[1], sim.mem.readByteUnsigned(sim.gpr.get(p[0]) + p[2])));
-		put(37, InstructionFmt.I, (sim, p) -> //lhu
-			sim.gpr.set(p[1], sim.mem.readHalfWordUnsigned(sim.gpr.get(p[0]) + p[2])));
-		put(38, InstructionFmt.I, (sim, p) -> //lwr
-			sim.gpr.set(p[1], sim.mem.readRight(sim.gpr.get(p[0]) + p[2], sim.gpr.get(p[1]))));
+		
+		put(34, InstructionFmt.I, (sim, p) -> {//lwl
+			int addr = sim.tlb.addressTranslation(sim.gpr.get(p[0]) + p[2], false);
+			sim.gpr.set(p[1], sim.mem.readLeft(addr, sim.gpr.get(p[1])));
+		});
+		
+		put(35, InstructionFmt.I, (sim, p) -> {//lw
+			int addr = sim.gpr.get(p[0]) + p[2];
+			if((addr & 3) != 0)
+				sim.signalException(AddressError_L, addr);
+			addr = sim.tlb.addressTranslation(addr, false);
+			sim.gpr.set(p[1], sim.mem.readWord(addr));
+		});
+		
+		put(36, InstructionFmt.I, (sim, p) -> {//lbu
+			int addr = sim.tlb.addressTranslation(sim.gpr.get(p[0]) + p[2], false);
+			sim.gpr.set(p[1], sim.mem.readByteUnsigned(addr));
+		});
+		
+		put(37, InstructionFmt.I, (sim, p) -> {//lhu
+			int addr = sim.gpr.get(p[0]) + p[2];
+			if((addr & 1) != 0)
+				sim.signalException(AddressError_L, addr);
+			addr = sim.tlb.addressTranslation(addr, false);
+			sim.gpr.set(p[1], sim.mem.readHalfWordUnsigned(addr));
+		});
+		
+		put(38, InstructionFmt.I, (sim, p) -> {//lwr
+			int addr = sim.tlb.addressTranslation(sim.gpr.get(p[0]) + p[2], false);
+			sim.gpr.set(p[1], sim.mem.readRight(addr, sim.gpr.get(p[1])));
+		});
+		
 		put(39, null, Instruction.RESERVED);
 		
-		put(40, InstructionFmt.I, (sim, p) -> //sb
-			sim.mem.writeByte(sim.gpr.get(p[0]) + p[2], sim.gpr.get(p[1])));
-		put(41, InstructionFmt.I, (sim, p) -> //sh
-			sim.mem.writeHalfWord(sim.gpr.get(p[0]) + p[2], sim.gpr.get(p[1])));
-		put(42, InstructionFmt.I, (sim, p) -> //swl
-			sim.mem.writeLeft(sim.gpr.get(p[0]) + p[2], sim.gpr.get(p[1])));
-		put(43, InstructionFmt.I, (sim, p) -> //sw
-			sim.mem.writeWord(sim.gpr.get(p[0]) + p[2], sim.gpr.get(p[1])));
+		put(40, InstructionFmt.I, (sim, p) -> {//sb
+			int addr = sim.tlb.addressTranslation(sim.gpr.get(p[0]) + p[2], true);
+			sim.mem.writeByte(addr, sim.gpr.get(p[1]));
+		});
+		
+		put(41, InstructionFmt.I, (sim, p) -> {//sh
+			int addr = sim.gpr.get(p[0]) + p[2];
+			if((addr & 1) != 0)
+				sim.signalException(AddressError_S, addr);
+			addr = sim.tlb.addressTranslation(addr, true);
+			sim.mem.writeHalfWord(addr, sim.gpr.get(p[1]));
+		});
+		
+		put(42, InstructionFmt.I, (sim, p) -> {//swl
+			int addr = sim.tlb.addressTranslation(sim.gpr.get(p[0]) + p[2], true);
+			sim.mem.writeLeft(addr, sim.gpr.get(p[1]));
+		});
+		
+		put(43, InstructionFmt.I, (sim, p) -> {//sw
+			int addr = sim.gpr.get(p[0]) + p[2];
+			if((addr & 3) != 0)
+				sim.signalException(AddressError_S, addr);
+			addr = sim.tlb.addressTranslation(addr, true);
+			sim.mem.writeWord(addr, sim.gpr.get(p[1]));
+		});
+		
 		put(44, null, Instruction.RESERVED);
 		put(45, null, Instruction.RESERVED);
-		put(46, InstructionFmt.I, (sim, p) -> //swr
-			sim.mem.writeRight(sim.gpr.get(p[0]) + p[2], sim.gpr.get(p[1])));
+		
+		put(46, InstructionFmt.I, (sim, p) -> {//swr
+			int addr = sim.tlb.addressTranslation(sim.gpr.get(p[0]) + p[2], true);
+			sim.mem.writeRight(addr, sim.gpr.get(p[1]));
+		});
 		put(47, null, Instruction.UNIMPLEMENTED);//cache, mark as unimplemented.
 		
 		for(int i = 48; i < 64; i++)

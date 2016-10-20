@@ -20,15 +20,15 @@ public class Memory
 	 * @param address
 	 * @return
 	 */
-	private int[] getCreatePage(int address)
+	public int[] getCreatePage(int address)
 	{
 		address >>= 12;
 		int[] page = this.pages.get(address);
 		if(page == null)
 		{
 			page = new int[1024];
-			for(int i = 0; i < 1024; i++)
-				page[i] = 0;
+//			for(int i = 0; i < 1024; i++)
+//				page[i] = 0;
 			this.pages.put(address, page);
 		}
 		return page;
@@ -44,6 +44,7 @@ public class Memory
 		this.endianess = 0;
 	}
 	
+	@Deprecated
 	public void loadProgram(int[] programData)
 	{
 		int i;
@@ -63,6 +64,29 @@ public class Memory
 			page[i] = 0;
 		
 		this.endianess = 0;
+	}
+	
+	public void loadData(int[] data, int startAddr)
+	{
+//		int i;
+//		int[] page = new int[1024];
+//		startAddr = (startAddr >> 2) & 0x3fffffff;
+//		this.pages.put(startAddr >> 10, page);
+//		for(i = 0; i < data.length; i++)
+//		{
+//			page[(i + startAddr) & 0x3ff] = data[i];
+//			if(((i + startAddr) & 0x3ff) == 0x3ff)
+//			{
+//				page = new int[1024];
+//				this.pages.put((i + 1 + startAddr) >> 10, page);
+//			}
+//		}
+//		this.endianess = 0;
+		for(int d : data)
+		{
+			this.writeWord(startAddr, d);
+			startAddr += 4;
+		}
 	}
 	
 	public void addPage(int pageAddr, int[] data)

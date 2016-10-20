@@ -74,7 +74,7 @@ public class Assembler
 		ArrayList<Instruction> fileInstruction = new ArrayList<>();
 		HashMap<String, LabelOccurence> fileLabelMap = new HashMap<>();
 		String currMnemonic = null;
-		int instructionAddr = this.instructions.size() + this.initAddr;
+		int instructionAddr = this.instructions.size();
 
 		boolean inComment = false;
 		boolean inQuotation = false;
@@ -173,7 +173,7 @@ public class Assembler
 								throw new LabelRedeclareError(labelStr, fileLabelMap.get(labelStr).occurence);
 							else if(this.globalLabelMap.containsKey(labelStr))
 								throw new LabelRedeclareError(labelStr, this.globalLabelMap.get(labelStr).occurence);
-							fileLabelMap.put(labelStr, new LabelOccurence(instructionAddr + fileInstruction.size(), currProcessing));
+							fileLabelMap.put(labelStr, new LabelOccurence(instructionAddr + fileInstruction.size() + this.initAddr, currProcessing));
 						}
 						else if(token.matches("[a-zA-Z_\\.][\\w\\.]*"))//mnemonic
 							currMnemonic = token;
@@ -212,7 +212,7 @@ public class Assembler
 				{
 					try
 					{
-						((LinkableInstruction)i).link(fileLabelMap, instructionAddr);
+						((LinkableInstruction)i).link(fileLabelMap, instructionAddr + this.initAddr);
 					}
 					catch(LabelNotDeclaredError e)
 					{
@@ -232,7 +232,8 @@ public class Assembler
 		}
 		catch(AsmError e)
 		{
-			e.setOccurence(currProcessing);
+			if(e.getOccurence() == null)
+				e.setOccurence(currProcessing);
 			throw e;
 		}
 	}
@@ -302,7 +303,7 @@ public class Assembler
 	
 	public void setInitAddr(int initAddr)
 	{
-		this.initAddr = initAddr;
+		this.initAddr = (initAddr >> 2) & 0x3fffffff;
 	}
 	
 	/**

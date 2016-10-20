@@ -13,17 +13,19 @@ import static mipsAsm.simulator.util.SimExceptionCode.*;
 public class TLB
 {
 	private final TLBEntry[] entries = new TLBEntry[32];
+	private final Simulator simulator;
 	
-	public TLB()
+	public TLB(Simulator simulator)
 	{
 		for(int i = 0; i < 32; i++)
 		{
 			entries[i] = new TLBEntry();
 			entries[i].age = i;
 		}
+		this.simulator = simulator;
 	}
 	
-	public int addressTranslation(Simulator simulator, int vAddr, boolean write) throws SimException
+	public int addressTranslation(int vAddr, boolean write) throws SimException
 	{
 		if((vAddr & 0x80000000) != 0 && simulator.cp0.inUserMode())//Trying to access kernel address space in user mode
 			simulator.signalException(write? AddressError_S: AddressError_L, vAddr);
@@ -41,19 +43,19 @@ public class TLB
 		if(i == 32)
 			simulator.signalException(write? TLBRefill_S: TLBRefill_L, vAddr);
 		temp = entries[i].translate(simulator, vAddr, write);
-		int j = 0;
-		for(; j < 32; j++)
-		{
-			if(entries[j].age < entries[i].age)
-				entries[j].age++;
-		}
-		entries[i].age = 0;
-		//Update random register
-		updateRandom(simulator);
+//		int j = 0;
+//		for(; j < 32; j++)
+//		{
+//			if(entries[j].age < entries[i].age)
+//				entries[j].age++;
+//		}
+//		entries[i].age = 0;
+//		//Update random register
+//		updateRandom(simulator);
 		return 0;
 	}
 	
-	public void readEntry(Simulator simulator)
+	public void readEntry()
 	{
 		int i = simulator.cp0.hardGet(0) & 0x1f;
 		simulator.cp0.hardSet(5, entries[i].pageMask, 0x1fffe000);
@@ -73,17 +75,17 @@ public class TLB
 		simulator.cp0.hardSet(3, entries[i].globl? -1: 0, 1);
 	}
 	
-	public void writeIndexed(Simulator simulator)
+	public void writeIndexed()
 	{
-		write(simulator, simulator.cp0.hardGet(0) & 0x1f);
+		write(simulator.cp0.hardGet(0) & 0x1f);
 	}
 	
-	public void writeRandom(Simulator simulator)
+	public void writeRandom()
 	{
-		write(simulator, simulator.cp0.hardGet(1));
+		write(simulator.cp0.hardGet(1));
 	}
 	
-	public void probe(Simulator simulator)
+	public void probe()
 	{
 		int i;
 		int addr = simulator.cp0.hardGet(10) & 0xffffe000;
@@ -96,7 +98,7 @@ public class TLB
 			simulator.cp0.hardSet(0, i, -1);
 	}
 	
-	private void write(Simulator simulator, int index)
+	private void write(int index)
 	{
 		entries[index].asid = simulator.cp0.hardGet(10) & 0xff;
 		entries[index].vpn2 = simulator.cp0.hardGet(10) & 0xffffe000;

@@ -63,9 +63,9 @@ public enum SimExceptionCode
 			sim.cp0.hardSet(13, causeCode << 2, 0x7c);
 		sim.cp0.hardSet(12, -1, 2);//Status_EXL = 1
 		if((sim.cp0.hardGet(12) & (1<<22)) != 0)
-			sim.scheduleAbsoluteJump(0xbfc00000 + offset, 0xbfc00004 + offset, -1);
+			sim.jumpTo(0xbfc00000 + offset);
 		else
-			sim.scheduleAbsoluteJump(0x80000000 + offset, 0x80000004 + offset, -1);
+			sim.jumpTo(0x80000000 + offset);
 		this.additionalOp.accept(sim, param);
 	}
 	

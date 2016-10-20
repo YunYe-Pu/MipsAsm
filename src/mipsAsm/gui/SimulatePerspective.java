@@ -3,7 +3,6 @@ package mipsAsm.gui;
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
-import java.util.function.Predicate;
 
 import javafx.application.Platform;
 import javafx.beans.binding.BooleanExpression;
@@ -24,6 +23,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import mipsAsm.disassembler.Disassembler;
@@ -34,44 +34,65 @@ import mipsAsm.util.MenuHelper;
 public class SimulatePerspective extends BorderPane
 {
 	private final Simulator simulator;
-	private SimpleBooleanProperty outsideProgBound = new SimpleBooleanProperty(false);
+	
+//	public int simRunLevel;
+	
+	private final TabPane mainPane;
+	private final Label statusLabel;
+
+	private final BorderPane debugPane;
+	private final TextArea monitor;
+	
+
+//	private SimpleBooleanProperty outsideProgBound = new SimpleBooleanProperty(false);
 	private SimpleBooleanProperty simRunning = new SimpleBooleanProperty(false);
-	private SimThread simulatorThread = null;
 	private boolean simInterrupted = false;
+	private SimThread simulatorThread;
+	private MonitorRedrawThread redrawThread;
+//	private boolean simInterrupted = false;
 	
-	private final Label[] sidePaneLabels;
-	private final VBox sidePane;
+//	private final Label[] sidePaneLabels;
+//	private final VBox sidePane;
 	
+	//GUI components in debug pane
 	private final TabPane bottomPane;
 	private final MemoryEditPane memPane;
 	private final RegisterEditPane regPane;
+	private final Cp0DisplayPane cp0Pane;
 
 	private final TextArea disassemblyContent;
+	
+	private final VBox sidePane;
+	private final Label[] sidePaneLabels;
 	
 	private final MenuBar menuBar;
 	private final Menu[] menus;
 	private final MenuItem[][] menuItems;
 	
 	private static final Alert disassemblePrompt = new Alert(AlertType.ERROR, "Wrong file format for binary.", ButtonType.OK);
-	private static final Alert simPrompt = new Alert(AlertType.INFORMATION, "Program counter has reached the boundary of program data."
-			+ " The run operation will be unavailable from now on.", ButtonType.OK);
+//	private static final Alert simPrompt = new Alert(AlertType.INFORMATION, "Program counter has reached the boundary of program data."
+//			+ " The run operation will be unavailable from now on.", ButtonType.OK);
 	private static final TextInputDialog offsetInputDialog = new TextInputDialog("0");
 
 	static
 	{
-		offsetInputDialog.setTitle("Enter initial PC");
-		offsetInputDialog.setHeaderText("Input the initial program counter,\nin hexadecimal word address:");
+		offsetInputDialog.setTitle("Enter program offset");
+		offsetInputDialog.setHeaderText("Input the program offset,\nin hexadecimal byte address:");
 	}
 	
 	public SimulatePerspective()
 	{
 		super();
 		this.menuBar = new MenuBar();
-		this.menus = new Menu[3];
-		this.menuItems = new MenuItem[3][];
+		this.menus = new Menu[2];
+		this.menuItems = new MenuItem[2][];
 		this.buildMenus();
 		
 		this.simulator = new Simulator();
+		
+		this.statusLabel = new Label("Paused");
+		this.statusLabel.setMinHeight(20);
+		this.statusLabel.setPadding(new Insets(0, 5, 2, 5));
 
 		this.sidePaneLabels = new Label[5];
 		for(int i = 0; i < 5; i++)
@@ -85,8 +106,12 @@ public class SimulatePerspective extends BorderPane
 		this.bottomPane = new TabPane();
 		this.memPane = new MemoryEditPane(this.simulator.mem);
 		this.regPane = new RegisterEditPane(this.simulator.gpr);
+		this.cp0Pane = new Cp0DisplayPane(this.simulator.cp0);
 		this.bottomPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
-		this.bottomPane.getTabs().addAll(new Tab("Memory", this.memPane), new Tab("Register", this.regPane));
+		this.bottomPane.getTabs().addAll(
+				new Tab("Memory", this.memPane),
+				new Tab("Register", this.regPane),
+				new Tab("Cop 0", this.cp0Pane));
 		
 		this.disassemblyContent = new TextArea();
 		this.disassemblyContent.fontProperty().bind(GUIMain.instance.editorFont);
@@ -96,22 +121,25 @@ public class SimulatePerspective extends BorderPane
 				this.fireEvent(e);
 		});
 		
-		GUIMain.instance.endianess.addListener((e, oldVal, newVal) -> this.simulator.mem.setEndianess(newVal));
-		GUIMain.instance.endianess.addListener((e, oldVal, newVal) -> this.menuItems[2][0].setText(newVal? "Endian:big": "Endian:little"));
-
-		this.outsideProgBound.addListener((e, oldVal, newVal) -> { if(!oldVal && newVal) simPrompt.showAndWait(); });
-//		this.menuItems[1][1].disableProperty().bind(this.outsideProgBound.or(this.simRunning));
-//		this.menuItems[0][0].disableProperty().bind(this.simRunning);
-//		this.menuItems[0][2].disableProperty().bind(this.simRunning);
-//		this.menuItems[1][0].disableProperty().bind(this.simRunning);
-//		this.menuItems[1][2].disableProperty().bind(this.simRunning.not());
-//		this.menuItems[1][4].disableProperty().bind(this.simRunning);
-//		this.menuItems[2][0].disableProperty().bind(this.simRunning);
+		this.monitor = new TextArea();
+		this.monitor.fontProperty().bind(GUIMain.instance.editorFont);
+		this.monitor.setEditable(false);
+		this.monitor.setOnKeyPressed(e -> this.onMonitorKeyPress(e));
+//		this.monitor.disableProperty().bind(this.simRunning.not());
+		
+		this.debugPane = new BorderPane();
+		this.debugPane.setCenter(this.disassemblyContent);
+		this.debugPane.setRight(this.sidePane);
+		this.debugPane.setBottom(this.bottomPane);
+//		this.debugPane.disableProperty().bind(this.simRunning);
+		
+		this.mainPane = new TabPane();
+		this.mainPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
+		this.mainPane.getTabs().addAll(new Tab("Monitor", this.monitor), new Tab("Debug", this.debugPane));
 		
 		this.setTop(this.menuBar);
-		this.setCenter(this.disassemblyContent);
-		this.setRight(this.sidePane);
-		this.setBottom(this.bottomPane);
+		this.setCenter(this.mainPane);
+		this.setBottom(this.statusLabel);
 		this.redraw();
 	}
 	
@@ -125,18 +153,20 @@ public class SimulatePerspective extends BorderPane
 		this.menuItems[0][2] = MenuHelper.item("Quit", e -> this.onQuit(), b2, "Q", KeyCombination.SHORTCUT_DOWN);
 		this.menus[0] = MenuHelper.menu("File", this.menuItems[0], "F");
 		
-		this.menuItems[1] = new MenuItem[5];
+		this.menuItems[1] = new MenuItem[6];
 		this.menuItems[1][0] = MenuHelper.item("Step", e -> this.onStep(), b2, KeyCode.F5);
-		this.menuItems[1][1] = MenuHelper.item("Run", e -> this.onRun(), b2.or(this.outsideProgBound), KeyCode.F6);
-		this.menuItems[1][2] = MenuHelper.item("Stop", e -> this.onStop(), b1.or(this.simRunning.not()), KeyCode.F7);
+		this.menuItems[1][1] = MenuHelper.item("Run", e -> this.onRun(), b2, KeyCode.F6);
+		this.menuItems[1][2] = MenuHelper.item("Pause", e -> this.onPause(), b1.or(this.simRunning.not()), KeyCode.F7);
 //		this.menuItems[1][2].setDisable(true);
 		this.menuItems[1][3] = new SeparatorMenuItem();
-		this.menuItems[1][4] = MenuHelper.item("Restart", e -> this.onRestart(), b2, "R", KeyCombination.SHORTCUT_DOWN);
+		this.menuItems[1][4] = MenuHelper.item("Reset", e -> this.onReset(), b1, "R", KeyCombination.SHORTCUT_DOWN);
+		this.menuItems[1][5] = MenuHelper.item("Clear", e -> this.onClear(), b2);
+		
 		this.menus[1] = MenuHelper.menu("Simulate", this.menuItems[1], "S");
 		
-		this.menuItems[2] = new MenuItem[1];
-		this.menuItems[2][0] = MenuHelper.item("Endian:little", e -> this.onEndianessSelect(), b2);
-		this.menus[2] = MenuHelper.menu("Options", this.menuItems[2], "O");
+//		this.menuItems[2] = new MenuItem[1];
+//		this.menuItems[2][0] = MenuHelper.item("Endian:little", e -> this.onEndianessSelect(), b2);
+//		this.menus[2] = MenuHelper.menu("Options", this.menuItems[2], "O");
 		
 		this.menuBar.getMenus().addAll(this.menus);
 		
@@ -156,8 +186,8 @@ public class SimulatePerspective extends BorderPane
 		{
 			offset = 0;
 		}
-		this.simulator.loadProgram(program, offset);
-		this.outsideProgBound.set(Simulator.pcOutofRange.test(this.simulator));
+		this.simulator.clear();
+		this.simulator.mem.loadData(program, offset);
 		
 		this.disassemblyContent.setText(Disassembler.disassemble(program).toString());
 		this.redraw();
@@ -168,15 +198,41 @@ public class SimulatePerspective extends BorderPane
 	{
 		this.memPane.redraw();
 		this.regPane.redraw();
-		this.sidePaneLabels[0].setText(String.format("PC:                  %08x", this.simulator.getPC()));
-		this.sidePaneLabels[1].setText(String.format("Next instruction:    %08x", this.simulator.getCurrInstruction()));
-		String disassemble = Disassembler.disassemble(this.simulator.getCurrInstruction());
-		if(disassemble.startsWith("."))
-			this.sidePaneLabels[2].setText("  Unrecognized instruction");
-		else
-			this.sidePaneLabels[2].setText("  " + disassemble);
-		this.sidePaneLabels[3].setText("Last exception:");
-		this.sidePaneLabels[4].setText(this.simulator.getLastException() == null? "  None": "  " + this.simulator.getLastException().name());
+		this.cp0Pane.redraw();
+		this.sidePaneLabels[0].setText(String.format("PC:  %08x", this.simulator.getPC()));
+		this.sidePaneLabels[1].setText(String.format("HI:  %08x", this.simulator.regHI));
+		this.sidePaneLabels[2].setText(String.format("LO:  %08x", this.simulator.regLO));
+	}
+
+	private String drawMonitor()
+	{
+		final int VRAM_ADDR = 0xb0000000;
+		final int ROWS = 80;
+		final int COLS = 30;
+		final int ROW_SPACING = 48;//128 - 80
+		
+		int x, y, addr, c;
+		addr = (VRAM_ADDR >> 2) & 0x3fffffff;
+		int[] page = simulator.mem.getCreatePage(addr << 2);
+		StringBuilder buffer = new StringBuilder(COLS * (ROWS + 1));
+		for(y = 0; y < COLS; y++)
+		{
+			for(x = 0; x < ROWS; x++)
+			{
+				c = page[addr & 0x3ff] & 0xff;
+				if(c >= 0x20 && c < 0x7f)
+					buffer.append((char)c);
+				else
+					buffer.append(' ');
+				addr++;
+			}
+			buffer.append('\n');
+			addr += ROW_SPACING;
+			if((addr & 0x3ff) == 0)
+				page = simulator.mem.getCreatePage(addr << 2);
+		}
+		buffer.setLength(buffer.length() - 1);
+		return buffer.toString();
 	}
 	
 	private boolean onOpen()
@@ -201,59 +257,101 @@ public class SimulatePerspective extends BorderPane
 	
 	private void onQuit()
 	{
+		this.simulator.clear();
 		GUIMain.instance.endSimulation();
 	}
 	
 	private void onStep()
 	{
 		this.simulator.step();
-		if(!this.outsideProgBound.get())
-			this.outsideProgBound.set(Simulator.pcOutofRange.test(this.simulator));
 		this.redraw();
 	}
 	
 	private void onRun()
 	{
-		this.simInterrupted = false;
 		this.simRunning.set(true);
+		this.simInterrupted = false;
 		this.simulatorThread = new SimThread();
+		this.redrawThread = new MonitorRedrawThread();
 		this.simulatorThread.start();
+		this.redrawThread.start();
 	}
 	
-	private void onStop()
+	private void onPause()
 	{
 		this.simInterrupted = true;
-	}
-	
-	private void onRestart()
-	{
-		this.simulator.resetSimProgress();
-		this.outsideProgBound.set(Simulator.pcOutofRange.test(this.simulator));
-		this.redraw();
-	}
-	
-	private void onSimEnd()//called when the simulation thread stops
-	{
-		this.outsideProgBound.set(Simulator.pcOutofRange.test(this.simulator));
 		this.simRunning.set(false);
+		this.statusLabel.setText("Paused");
 		this.redraw();
-		this.simulatorThread = null;
 	}
 	
-	private void onEndianessSelect()
+	private void onReset()
 	{
-		GUIMain.instance.endianess.set(!GUIMain.instance.endianess.get());
+		this.simulator.signalColdReset();
+	}
+	
+	private void onClear()
+	{
+		this.simulator.clear();
+	}
+	
+	private void onMonitorKeyPress(KeyEvent event)
+	{
+		//TODO
 	}
 	
 	private class SimThread extends Thread
 	{
-		private final Predicate<Simulator> interrupted = sim -> simInterrupted;
+		private long timestamp = System.nanoTime();
+		private long instCounter = 0;
 		
 		@Override
 		public void run()
 		{
-			simulator.runUntil(this.interrupted.or(Simulator.exceptionOccur).or(Simulator.pcOutofRange));
-			Platform.runLater(() -> onSimEnd());
+			while(!simInterrupted)
+			{
+				simulator.step();
+				this.instCounter++;
+			}
 		}
+		
+		public double getPerformance()//Performance in million instructions per second
+		{
+			long t1 = System.nanoTime();
+			long instCnt = instCounter;
+			instCounter = 0;
+			double ret = instCnt / ((t1 - timestamp) / 1_000D);
+			timestamp = t1;
+			return ret;
+		}
+	}
+	
+	private class MonitorRedrawThread extends Thread
+	{
+		@Override
+		public void run()
+		{
+			int cnt = 20;
+			while(!simInterrupted)
+			{
+				try
+				{
+					String str = drawMonitor();
+					Platform.runLater(() -> monitor.setText(str));
+					cnt++;
+					if(cnt >= 25)
+					{
+						Platform.runLater(() -> {
+							String s = String.format("Running at %.2f MIPS", simulatorThread.getPerformance());
+							statusLabel.setText(s);
+						});
+						cnt = 0;
+					}
+					Thread.sleep(20);
+				}
+				catch(InterruptedException e) {}
+			}
+		}
+		
 	}
 }

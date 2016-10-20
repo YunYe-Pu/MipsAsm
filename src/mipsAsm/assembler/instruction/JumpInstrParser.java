@@ -44,7 +44,7 @@ public enum JumpInstrParser implements InstructionParser
 			instrList.add(InstructionFmt.J.newInstance(data[0], operands.clone(), null, assembler));
 		}
 		else if(operands[0] instanceof OpLabel)
-			instrList.add(InstructionFmt.J.newInstance(data[0], operands.clone(), LinkType.ABSOLUTE_WORD, assembler));
+			instrList.add(InstructionFmt.J.newInstance(data[0], operands.clone(), LinkType.REGIONAL_WORD, assembler));
 		else if(operands[0] instanceof OpRegister)
 		{
 			Operand[] ops = new Operand[5];

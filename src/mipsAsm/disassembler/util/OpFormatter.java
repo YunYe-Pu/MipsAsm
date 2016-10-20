@@ -8,6 +8,17 @@ public class OpFormatter
 		"$s0", "$s1", "$s2", "$s3", "$s4", "$s5", "$s6", "$s7",
 		"$t8", "$t9", "$k0", "$k1", "$gp", "$sp", "$fp", "$ra"};
 	
+	public static final String[] cp0RegNames = {
+		"$Index", "$Random", "$EntryLo0", "$EntryLo1",
+		"$Context", "$PageMask", "$Wired", "Reserved",
+		"$BadVAddr", "$Count", "$EntryHi", "$Compare",
+		"$Status", "$Cause", "$EPC", "$PRId",
+		"$Config", "LLAddr", "WatchLo", "WatchHi",
+		"Reserved", "Reserved", "Reserved", "$Debug",
+		"$DEPC", "$PerfCnt", "$ErrCtl", "$CacheErr",
+		"$CacheLo", "$CacheHi", "$ErrorEPC", "$DESAVE"
+	};
+	
 	private static String asReg(int value)
 	{
 		return regNames[value & 31];
