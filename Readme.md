@@ -1,8 +1,8 @@
 #MIPS Assembler IDE
 
-This is my project for the course Computer Organization, Zhejiang University.
+This is my project for the courses Computer Organization, Computer Architecture, and Operating System.
 
-The assembler, disassembler and simulator is based on *MIPS32 Architecture for Programmers Volume II: The MIPS32 Instruction Set*.
+The assembler, disassembler and simulator are based on *MIPS32 Architecture for Programmers Volume II: The MIPS32 Instruction Set* and *MIPS32 Architecture for Programmers Volume III: The MIPS32 Privileged Resource Architecture*.
 
 The graphical user interface is powered by javaFX.
 
@@ -10,7 +10,7 @@ Executable on Windows platform is packaged by launch4j. Command line interface i
 
 ##Assembler
 
-The assembler is capable of assembling multiple source files and generate one binary file. No object files are generated during assembly.
+The assembler is capable of assembling multiple source files and generating one binary file. No object files are generated during assembly.
 
 Supported instructions and macro instructions are listed in appendix A.
 
@@ -39,11 +39,9 @@ Label is currently unsupported in disassembly, so an immediate will be placed in
 
 Capable of loading all three file types output by assembler. When loading binary or hexadecimal file, endianness should be correctly configured.
 
-The simulator has a 4GiB memory space that can be directly addressed by the MIPS program. Program is loaded into this memory space, starting from address 0, while the initial value of program counter can be configured. Subsequent instructions are fetched from this memory space.
+The simulator features 4GiB physical memory space, coprocessor 0 for privileged instructions, and TLB for address translation. Coprocessor 0 and TLB are written according to 'minimal' requirements from *MIPS32 Architecture for Programmers Volume III*, meaning that anything with compliance labeled as 'Optional' are not implemented in the simulator. However, this should be more than enough for implementing a simple OS.
 
-Data in memory and register file can be modified manually before and during a simulation.
-
-Exceptions are not automatically handled by the simulator; they are simply signaled by the simulator.
+Before running a simulation, program should be loaded into the memory. The starting address of program can be configured, but should be aligned on word boundary. Program counter points at 0xBFC00000 at the start of a simulation, which is the value after a cold reset.
 
 Most instructions supported by the assembler are supported by the simulator, however some instructions may have no effect(for example, sync).
 
@@ -71,15 +69,17 @@ The GUI provides basic code editing functionality. Assembly or simulation can ru
 
 The code editor provides NO line numbering or syntax highlighting; javaFX native text area does not support this feature. Sorry for the inconvenience, but you can edit the code in an editor you like, and use the Reload menu option to reload the code before assembly. Drag-and-drop is supported for opening a source file.
 
-Simulator is fully functional in GUI, with memory and register editing pane and a disassembly text area. Data in memory and register can be modified by double-clicking on the cell, and the offset column in memory edit pane can also be edited for fast access to an arbitrary memory location. 
+Simulator is fully functional in GUI, with a monitor tab and a debug tab. The monitor tab acts as an interface between user and the simulator: contents in a specific physical memory page will be displayed in the monitor as ASCII characters, while pressing keys when focused on the monitor will send interrupts to the simulator. The debug pane allows user to monitor almost everything about the simulator, including physical memory, general-purpose registers, and coprocessor 0 registers. Data in memory and general-purpose registers can be modified by double-clicking on the cell, and the offset column in memory tab can also be edited for fast access to an arbitrary memory location.
 
-Available simulation operation under GUI include Step, which executes a single instruction, and Run, which runs continuously until the program counter goes out of the program section, an exception occur, or manually aborted. After the program counter goes out of the program section, the run operation will become unavailable, until the simulation is restarted.
+Available simulation operations under GUI include Step, which executes a single instruction, and Run, which runs the simulator continuously in a background thread. Reset operation can be used anytime to send a cold reset signal to the simulator, including when simulator is running in a background thread.
 
 ##Screenshots
 
 ![editor](screenshots/editor.png)
 
-![simulator](screenshots/simulator.png)
+![simulator-debug](screenshots/simulator2.png)
+
+![simulator-run](screenshots/simulator3.png)
 
 ##Appendix A: Instructions supported by assembler
 
@@ -113,6 +113,7 @@ Available simulation operation under GUI include Step, which executes a single i
 * clz
 * div
 * divu
+* eret
 * j
 * jal
 * jalr
@@ -130,6 +131,7 @@ Available simulation operation under GUI include Step, which executes a single i
 * lwr
 * madd
 * maddu
+* mfc0
 * mfhi
 * mflo
 * move
@@ -137,6 +139,7 @@ Available simulation operation under GUI include Step, which executes a single i
 * movz
 * msub
 * msubu
+* mtc0
 * mthi
 * mtlo
 * mul
@@ -176,6 +179,10 @@ Available simulation operation under GUI include Step, which executes a single i
 * tgei
 * tgeiu
 * tgeu
+* tlbp
+* tlbr
+* tlbwi
+* tlbwr
 * tlt
 * tlti
 * tltiu
