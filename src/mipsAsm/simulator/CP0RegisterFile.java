@@ -21,8 +21,8 @@ public class CP0RegisterFile
 			-1,//Count
 			0xffffe0ff,//EntryHi
 			-1,//Compare
-			0x1060ff17,//Status
-			0x00c00300,//Cause
+			0x1040ff17,//Status
+			0x00800300,//Cause
 			-1,//EPC
 			0,//PRId
 			0x7,//Config
