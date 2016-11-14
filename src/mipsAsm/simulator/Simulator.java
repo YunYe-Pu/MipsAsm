@@ -210,8 +210,9 @@ public class Simulator
 	
 	public void jumpTo(int addr)
 	{
-		this.scheduledPC0 = addr;
-		this.scheduledPC1 = addr + 4;
+		this.programCounter = addr;
+		this.scheduledPC0 = addr + 4;
+		this.scheduledPC1 = addr + 8;
 	}
 	
 	public int getPC()
