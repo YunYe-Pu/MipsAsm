@@ -11,6 +11,7 @@ public class OpRegister extends Operand
 	public static final String format = "\\$\\w*";
 	
 	protected static final HashMap<String, Integer> regNameMap = new HashMap<>(59);
+	protected static final HashMap<String, Integer> regNameMapCP0 = new HashMap<>(59);
 	
 	protected final int regNum;
 	protected int mask;
@@ -29,9 +30,15 @@ public class OpRegister extends Operand
 		Integer regNum = regNameMap.get(token);
 		if(regNum != null)
 		{
-			if(token.equals("$at"))
+			if(regNum == 1)//$at
 				assembler.handleWarning(new AsmWarning("Deprecated register name",
 						"Using $at in assembly code is not recommended."));
+			this.regNum = regNum;
+			return;
+		}
+		regNum = regNameMapCP0.get(token);
+		if(regNum != null)
+		{
 			this.regNum = regNum;
 			return;
 		}
@@ -95,34 +102,39 @@ public class OpRegister extends Operand
 		regNameMap.put("$fp", 30);
 		regNameMap.put("$ra", 31);
 		
-		regNameMap.put("$Index", 0);
-		regNameMap.put("$Random", 1);
-		regNameMap.put("$EntryLo0", 2);
-		regNameMap.put("$EntryLo1", 3);
-		regNameMap.put("$Context", 4);
-		regNameMap.put("$PageMask", 5);
-		regNameMap.put("$Wired", 6);
-		regNameMap.put("$BadVAddr", 8);
-		regNameMap.put("$Count", 9);
-		regNameMap.put("$EntryHi", 10);
-		regNameMap.put("$Compare", 11);
-		regNameMap.put("$Status", 12);
-		regNameMap.put("$Cause", 13);
-		regNameMap.put("$EPC", 14);
-		regNameMap.put("$PRId", 15);
-		regNameMap.put("$Config", 16);
-		regNameMap.put("$LLAddr", 17);
-		regNameMap.put("$WatchLo", 18);
-		regNameMap.put("$WatchHi", 19);
-		regNameMap.put("$Debug", 23);
-		regNameMap.put("$DEPC", 24);
-		regNameMap.put("$PerfCnt", 25);
-		regNameMap.put("$ErrCtl", 26);
-		regNameMap.put("$CacheErr", 27);
-		regNameMap.put("$CacheLo", 28);//TagLo, DataLo
-		regNameMap.put("$CacheHi", 29);//TagHi, DataHi
-		regNameMap.put("$ErrorEPC", 30);
-		regNameMap.put("$DESAVE", 31);
+		regNameMapCP0.put("$Index",    0);
+		regNameMapCP0.put("$Random",   1 << 11);
+		regNameMapCP0.put("$EntryLo0", 2 << 11);
+		regNameMapCP0.put("$EntryLo1", 3 << 11);
+		regNameMapCP0.put("$Context",  4 << 11);
+		regNameMapCP0.put("$PageMask", 5 << 11);
+		regNameMapCP0.put("$Wired",    6 << 11);
+		regNameMapCP0.put("$BadVAddr", 8 << 11);
+		regNameMapCP0.put("$Count",    9 << 11);
+		regNameMapCP0.put("$EntryHi",  10 << 11);
+		regNameMapCP0.put("$Compare",  11 << 11);
+		regNameMapCP0.put("$Status",   12 << 11);
+		regNameMapCP0.put("$Cause",    13 << 11);
+		regNameMapCP0.put("$EPC",      14 << 11);
+		regNameMapCP0.put("$PRId",     15 << 11);
+		regNameMapCP0.put("$Config",   16 << 11);
+		regNameMapCP0.put("$Config1", (16 << 11) | 1);
+		regNameMapCP0.put("$Config2", (16 << 11) | 2);
+		regNameMapCP0.put("$Config3", (16 << 11) | 3);
+		regNameMapCP0.put("$LLAddr",   17 << 11);
+		regNameMapCP0.put("$WatchLo",  18 << 11);
+		regNameMapCP0.put("$WatchHi",  19 << 11);
+		regNameMapCP0.put("$Debug",    23 << 11);
+		regNameMapCP0.put("$DEPC",     24 << 11);
+		regNameMapCP0.put("$PerfCnt",  25 << 11);
+		regNameMapCP0.put("$ErrCtl",   26 << 11);
+		regNameMapCP0.put("$CacheErr", 27 << 11);
+		regNameMapCP0.put("$TagLo",    28 << 11);
+		regNameMapCP0.put("$DataLo",  (28 << 11) | 1);
+		regNameMapCP0.put("$TagHi",    29 << 11);
+		regNameMapCP0.put("$DataHi",  (29 << 11) | 1);
+		regNameMapCP0.put("$ErrorEPC", 30 << 11);
+		regNameMapCP0.put("$DESAVE",   31 << 11);
 	}
 	
 }

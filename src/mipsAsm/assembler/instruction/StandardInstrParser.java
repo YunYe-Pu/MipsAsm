@@ -104,8 +104,8 @@ public enum StandardInstrParser implements InstructionParser
 	TLBR    (InstructionFmt.J, OperandFmt.NONE, 0x10, 0x2000001),
 	TLBWI   (InstructionFmt.J, OperandFmt.NONE, 0x10, 0x2000002),
 	TLBWR   (InstructionFmt.J, OperandFmt.NONE, 0x10, 0x2000006),
-	MFC0    (InstructionFmt.MFTC0, OperandFmt.RRI, 0x10, 0x0, -1, -2, 0x0, -3),
-	MTC0    (InstructionFmt.MFTC0, OperandFmt.RRI, 0x10, 0x4, -1, -2, 0x0, -3),
+	MFC0    (InstructionFmt.I, OperandFmt.RR, 0x10, 0x0, -1, -2),
+	MTC0    (InstructionFmt.I, OperandFmt.RR, 0x10, 0x4, -1, -2),
 	;
 	private final InstructionFmt instrFormat;
 	private final OperandFmt operandFormat;

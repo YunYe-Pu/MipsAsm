@@ -21,7 +21,6 @@ public class InstructionFmt
 	public static final InstructionFmt I = new InstructionFmt(5, 5, 16);
 	public static final InstructionFmt J = new InstructionFmt(26);
 	public static final InstructionFmt F20_6 = new InstructionFmt(20, 6);
-	public static final InstructionFmt MFTC0 = new InstructionFmt(5, 5, 5, 8, 3);
 	
 	private final int[] fieldLength;
 	
