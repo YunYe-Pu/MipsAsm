@@ -49,6 +49,7 @@ public final class Disassembler
 		disasmMap[0] = OpSpecial.disassembly;
 		disasmMap[1] = OpRegimm.disassembly;
 		disasmMap[0x1c] = OpSpecial.disassembly2;
+		disasmMap[0x10] = OpCp0.disassembly;
 		for(Instructions i : Instructions.values())
 			disasmMap[i.opCode] = i;
 		

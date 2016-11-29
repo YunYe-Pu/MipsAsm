@@ -178,7 +178,19 @@ public class SimulatePerspective extends BorderPane
 		this.simulator.clear();
 		this.simulator.mem.loadData(program, offset);
 		
-		this.disassemblyContent.setText(Disassembler.disassemble(program).toString());
+//		this.disassemblyContent.setText(Disassembler.disassemble(program).toString());
+		StringBuilder buffer = new StringBuilder();
+		for(int i = 0; i < program.length; i++)
+		{
+			buffer.append("0x");
+			buffer.append(Integer.toHexString(offset + (i << 2)));
+			buffer.append(": ");
+			buffer.append(Integer.toHexString(program[i]));
+			buffer.append(' ');
+			buffer.append(Disassembler.disassemble(program[i]));
+			buffer.append('\n');
+		}
+		this.disassemblyContent.setText(buffer.toString());
 		this.redraw();
 		return true;
 	}

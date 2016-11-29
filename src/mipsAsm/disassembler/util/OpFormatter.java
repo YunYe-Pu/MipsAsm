@@ -32,6 +32,11 @@ public class OpFormatter
 			return "-0x" + Integer.toHexString(-value);
 	}
 	
+	private static String asCp0Reg(int value, int sel)
+	{
+		return String.format("%d, %d", value, sel);
+	}
+	
 	public static String format(String format, int... values)
 	{
 		StringBuilder ret = new StringBuilder();
@@ -46,6 +51,10 @@ public class OpFormatter
 					ret.append(asReg(values[i++])); break;
 				case 'i'://immediate
 					ret.append(asImm(values[i++])); break;
+				case '0':
+					ret.append(asCp0Reg(values[i], values[i+1]));
+					i += 2;
+					break;
 				default:
 					ret.append(c);
 				}
