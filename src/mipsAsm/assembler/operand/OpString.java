@@ -61,6 +61,7 @@ public class OpString extends Operand
 					throw new AsmError("Invalid escape sequence", "The escape sequence \\" + s1[i]
 							+ " is invalid; valid ones are \\b \\t \\n \\f \\r \\\" \\\' \\\\");
 				}
+				escapeSeq = false;
 			}
 			else
 			{

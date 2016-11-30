@@ -30,7 +30,7 @@ public final class Instructions
 	static
 	{
 		put(0, InstructionFmt.R, OpSpecial.executor);//special
-		put(1, InstructionFmt.R, OpRegimm.executor);//regimm
+		put(1, InstructionFmt.I, OpRegimm.executor);//regimm
 
 		put(2, InstructionFmt.J, (sim, p) -> //j
 			sim.scheduleAbsoluteJump(p[0] << 2, 0x0fffffff));
