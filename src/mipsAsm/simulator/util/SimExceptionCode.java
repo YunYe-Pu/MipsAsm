@@ -20,7 +20,8 @@ public enum SimExceptionCode
 	TLBRefill_L(2),
 	TLBRefill_S(3),
 	TLBModified(1),
-	Interrupt(0);
+	Interrupt(0),
+	ERET(0);
 	
 	private int causeCode;
 	private ObjIntConsumer<Simulator> additionalOp = (sim, i) -> {};
@@ -37,6 +38,7 @@ public enum SimExceptionCode
 	
 	public void process(Simulator sim, int param)
 	{
+		if(this == ERET) return;
 		int offset;
 		if((sim.cp0.hardGet(12) & 2) == 0)
 		{

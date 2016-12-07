@@ -40,6 +40,7 @@ public final class OpCp0
 					sim.cp0.hardSet(12, 0, 2);
 					sim.jumpTo(sim.cp0.hardGet(14));//EPC
 				}
+				sim.signalException(ERET);//Signal an exception to inhibit program counter increment in step() method
 				break;
 			default:
 				sim.signalException(ReservedInstruction);

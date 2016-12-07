@@ -102,7 +102,7 @@ public class TLB
 	{
 		entries[index].asid = simulator.cp0.hardGet(10) & 0xff;
 		entries[index].vpn2 = simulator.cp0.hardGet(10) & 0xffffe000;
-		entries[index].pageMask = simulator.cp0.hardGet(0x1fffe000);
+		entries[index].pageMask = simulator.cp0.hardGet(5) & 0x1fffe000;
 		entries[index].globl = (simulator.cp0.hardGet(2) & simulator.cp0.hardGet(3) & 1) != 0;
 		entries[index].pfn0 = simulator.cp0.hardGet(2) & 0x03ffffc0;
 		entries[index].pfn1 = simulator.cp0.hardGet(3) & 0x03ffffc0;
