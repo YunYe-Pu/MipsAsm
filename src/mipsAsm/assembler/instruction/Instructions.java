@@ -28,6 +28,9 @@ public final class Instructions
 			mnemonicMap.put(i.name().toLowerCase(), i);
 			mnemonicMap.put(i.alias, i);
 		}
+
+		for(Cop0InstrParser i : Cop0InstrParser.values())
+			mnemonicMap.put(i.name().toLowerCase(), i);
 		
 		for(BranchMacros i : BranchMacros.values())
 			mnemonicMap.put(i.name().toLowerCase(), i);

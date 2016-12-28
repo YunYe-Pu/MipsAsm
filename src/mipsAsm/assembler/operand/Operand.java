@@ -52,7 +52,7 @@ public abstract class Operand
 	public static Operand parse(String token, Assembler assembler) throws AsmError
 	{
 		if(token.matches(OpRegister.format))
-			return new OpRegister(token, assembler);
+			return OpRegister.newInstance(token, assembler);
 		else if(token.matches(OpImmediate.format))
 			return new OpImmediate(token);
 		else if(token.matches(OpLabel.format))

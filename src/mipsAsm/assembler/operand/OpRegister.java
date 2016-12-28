@@ -12,42 +12,15 @@ public class OpRegister extends Operand
 	
 	protected static final HashMap<String, Integer> regNameMap = new HashMap<>(59);
 	protected static final HashMap<String, Integer> regNameMapCP0 = new HashMap<>(59);
+	protected static final HashMap<String, Integer> regSelMapCP0 = new HashMap<>(10);
 	
 	protected final int regNum;
 	protected int mask;
 	
-	public OpRegister(String token, Assembler assembler) throws AsmError
-	{
-		if(token.matches("\\$\\d{1,2}"))
-		{
-			int num = Integer.parseInt(token.substring(1));
-			if(num >= 0 && num < 32)
-			{
-				this.regNum = num;
-				return;
-			}
-		}
-		Integer regNum = regNameMap.get(token);
-		if(regNum != null)
-		{
-			if(regNum == 1)//$at
-				assembler.handleWarning(new AsmWarning("Deprecated register name",
-						"Using $at in assembly code is not recommended."));
-			this.regNum = regNum;
-			return;
-		}
-		regNum = regNameMapCP0.get(token);
-		if(regNum != null)
-		{
-			this.regNum = regNum;
-			return;
-		}
-		throw new AsmError("Unknown Register", "Unknown register name \"" + token + "\"");
-	}
-	
 	public OpRegister(int regNum)
 	{
 		this.regNum = regNum;
+		this.mask = -1;
 	}
 
 	@Override
@@ -61,6 +34,30 @@ public class OpRegister extends Operand
 	{
 		this.mask = ((1 << width) - 1);
 		return null;
+	}
+	
+	public static OpRegister newInstance(String token, Assembler assembler) throws AsmError
+	{
+		if(token.matches("\\$\\d{1,2}"))
+		{
+			int num = Integer.parseInt(token.substring(1));
+			if(num >= 0 && num < 32)
+				return new OpRegister(num);
+			else
+				throw new AsmError("Unknown Register", "Unknown register name \"" + token + "\"");
+		}
+		Integer regNum = regNameMap.get(token);
+		if(regNum != null)
+		{
+			if(regNum == 1)//$at
+				assembler.handleWarning(new AsmWarning("Deprecated register name",
+						"Using $at in assembly code is not recommended."));
+			return new OpRegister(regNum);
+		}
+		regNum = regNameMapCP0.get(token);
+		if(regNum != null)
+			return new OpCp0Register(regNum, regSelMapCP0.getOrDefault(token, 0));
+		throw new AsmError("Unknown Register", "Unknown register name \"" + token + "\"");
 	}
 
 	static
@@ -103,38 +100,66 @@ public class OpRegister extends Operand
 		regNameMap.put("$ra", 31);
 		
 		regNameMapCP0.put("$Index",    0);
-		regNameMapCP0.put("$Random",   1 << 11);
-		regNameMapCP0.put("$EntryLo0", 2 << 11);
-		regNameMapCP0.put("$EntryLo1", 3 << 11);
-		regNameMapCP0.put("$Context",  4 << 11);
-		regNameMapCP0.put("$PageMask", 5 << 11);
-		regNameMapCP0.put("$Wired",    6 << 11);
-		regNameMapCP0.put("$BadVAddr", 8 << 11);
-		regNameMapCP0.put("$Count",    9 << 11);
-		regNameMapCP0.put("$EntryHi",  10 << 11);
-		regNameMapCP0.put("$Compare",  11 << 11);
-		regNameMapCP0.put("$Status",   12 << 11);
-		regNameMapCP0.put("$Cause",    13 << 11);
-		regNameMapCP0.put("$EPC",      14 << 11);
-		regNameMapCP0.put("$PRId",     15 << 11);
-		regNameMapCP0.put("$Config",   16 << 11);
-		regNameMapCP0.put("$Config1", (16 << 11) | 1);
-		regNameMapCP0.put("$Config2", (16 << 11) | 2);
-		regNameMapCP0.put("$Config3", (16 << 11) | 3);
-		regNameMapCP0.put("$LLAddr",   17 << 11);
-		regNameMapCP0.put("$WatchLo",  18 << 11);
-		regNameMapCP0.put("$WatchHi",  19 << 11);
-		regNameMapCP0.put("$Debug",    23 << 11);
-		regNameMapCP0.put("$DEPC",     24 << 11);
-		regNameMapCP0.put("$PerfCnt",  25 << 11);
-		regNameMapCP0.put("$ErrCtl",   26 << 11);
-		regNameMapCP0.put("$CacheErr", 27 << 11);
-		regNameMapCP0.put("$TagLo",    28 << 11);
-		regNameMapCP0.put("$DataLo",  (28 << 11) | 1);
-		regNameMapCP0.put("$TagHi",    29 << 11);
-		regNameMapCP0.put("$DataHi",  (29 << 11) | 1);
-		regNameMapCP0.put("$ErrorEPC", 30 << 11);
-		regNameMapCP0.put("$DESAVE",   31 << 11);
+		regNameMapCP0.put("$Random",   1);
+		regNameMapCP0.put("$EntryLo0", 2);
+		regNameMapCP0.put("$EntryLo1", 3);
+		regNameMapCP0.put("$Context",  4);
+		regNameMapCP0.put("$PageMask", 5);
+		regNameMapCP0.put("$Wired",    6);
+		regNameMapCP0.put("$BadVAddr", 8);
+		regNameMapCP0.put("$Count",    9);
+		regNameMapCP0.put("$EntryHi",  10);
+		regNameMapCP0.put("$Compare",  11);
+		regNameMapCP0.put("$Status",   12);
+		regNameMapCP0.put("$Cause",    13);
+		regNameMapCP0.put("$EPC",      14);
+		regNameMapCP0.put("$PRId",     15);
+		regNameMapCP0.put("$Config",   16);
+		regNameMapCP0.put("$Config1",  16);
+		regNameMapCP0.put("$Config2",  16);
+		regNameMapCP0.put("$Config3",  16);
+		regNameMapCP0.put("$LLAddr",   17);
+		regNameMapCP0.put("$WatchLo",  18);
+		regNameMapCP0.put("$WatchHi",  19);
+		regNameMapCP0.put("$Debug",    23);
+		regNameMapCP0.put("$DEPC",     24);
+		regNameMapCP0.put("$PerfCnt",  25);
+		regNameMapCP0.put("$ErrCtl",   26);
+		regNameMapCP0.put("$CacheErr", 27);
+		regNameMapCP0.put("$TagLo",    28);
+		regNameMapCP0.put("$DataLo",   28);
+		regNameMapCP0.put("$TagHi",    29);
+		regNameMapCP0.put("$DataHi",   29);
+		regNameMapCP0.put("$ErrorEPC", 30);
+		regNameMapCP0.put("$DESAVE",   31);
+
+		regSelMapCP0.put("$Config1", 1);
+		regSelMapCP0.put("$Config2", 2);
+		regSelMapCP0.put("$Config3", 3);
+		regSelMapCP0.put("$DataLo",  1);
+		regSelMapCP0.put("$DataHi",  1);
+	}
+	
+	public static class OpCp0Register extends OpRegister
+	{
+		protected int sel;
+		
+		public OpCp0Register(int num, int sel)
+		{
+			super(num);
+			this.sel = sel;
+		}
+
+		@Override
+		public int getEncoding()
+		{
+			return ((this.regNum << 11) | this.sel) & this.mask;
+		}
+		
+		public void setSelField(int sel)
+		{
+			this.sel = sel;
+		}
 	}
 	
 }
