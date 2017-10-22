@@ -116,6 +116,20 @@ public class Directives
 			throw new AsmError("Directive error", ".init directive can only be used at the beginning of assembly code.");
 	};
 	
+	private static final InstructionParser ORG = (operands, assembler, instructionList) ->
+	{
+		OperandFmt.I.matches(operands);
+		int address = operands[0].getEncoding();
+		if((address & 3) != 0)
+			throw new AsmError("Directive error", ".org directive only accepts a 4-byte aligned address.");
+		if(instructionList.size() > (address >> 2))
+			throw new AsmError("Directive error", "Padding address is less than instruction size in list.");
+		address = (address >> 2) - instructionList.size();
+		Instruction inst = new DataInstruction(0);
+		while(address-- > 0)
+			instructionList.add(inst);
+	};
+	
 	private static final HashMap<String, InstructionParser> handlerMap = new HashMap<>();
 	
 	static
@@ -127,6 +141,7 @@ public class Directives
 		handlerMap.put(".word", new Directives.BinaryHandler(32));
 		handlerMap.put(".space", Directives.SPACE);
 		handlerMap.put(".init", Directives.INIT);
+		handlerMap.put(".org", Directives.ORG);
 	}
 	
 	public static InstructionParser getHandler(String directiveName) throws AsmError

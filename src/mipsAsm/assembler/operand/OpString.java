@@ -54,6 +54,9 @@ public class OpString extends Operand
 				case '\\':
 					s2[j++] = '\\';
 					break;
+				case '0':
+					s2[j++] = 0;
+					break;
 //				case 's':
 //					s2[j++] = ' ';
 //					break;
