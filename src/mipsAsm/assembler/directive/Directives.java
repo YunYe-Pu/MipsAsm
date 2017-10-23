@@ -57,6 +57,16 @@ public class Directives
 		}
 	};
 	
+	private static final InstructionParser EXTERN = (operands, assembler, instructionlist) -> {
+		int opIndex = 0;
+		for(Operand op : operands)
+		{
+			if(!(op instanceof OpLabel))
+				throw new OpTypeMismatchError(opIndex, op, OpLabel.class);
+			assembler.addExternalLabel(((OpLabel)op).labelName);
+		}
+	};
+	
 	private static final InstructionParser SPACE = (operands, assembler, instructionList) ->
 	{
 		OperandFmt.I.matches(operands);
@@ -136,6 +146,7 @@ public class Directives
 	{
 		handlerMap.put(".asciiz", Directives.ASCIIZ);
 		handlerMap.put(".globl", Directives.GLOBl);
+		handlerMap.put(".extern", Directives.EXTERN);
 		handlerMap.put(".byte", new Directives.BinaryHandler(8));
 		handlerMap.put(".half", new Directives.BinaryHandler(16));
 		handlerMap.put(".word", new Directives.BinaryHandler(32));

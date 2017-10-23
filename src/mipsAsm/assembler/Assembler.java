@@ -35,6 +35,7 @@ public class Assembler
 	protected HashMap<String, LabelOccurence> globalLabelMap = new HashMap<>();
 
 	protected HashSet<String> fileGlobalLabel = new HashSet<>();
+	protected HashSet<String> fileExternalLabel = new HashSet<>();
 	
 	protected boolean endianess = false;
 	
@@ -81,6 +82,7 @@ public class Assembler
 		StringBuilder tokenBuffer = new StringBuilder();
 
 		this.fileGlobalLabel.clear();
+		this.fileExternalLabel.clear();
 
 		currProcessing = new Occurence(input.getName(), 0, "");
 		try(Scanner scanner = new Scanner(input))
@@ -216,7 +218,7 @@ public class Assembler
 					}
 					catch(LabelNotDeclaredError e)
 					{
-						if(!this.fileGlobalLabel.contains(e.labelName))
+						if(!this.fileExternalLabel.contains(e.labelName))
 							throw e;
 					}
 				}
@@ -284,6 +286,11 @@ public class Assembler
 	public void addGlobalLabel(String label)
 	{
 		this.fileGlobalLabel.add(label);
+	}
+	
+	public void addExternalLabel(String label)
+	{
+		this.fileExternalLabel.add(label);
 	}
 	
 	public void setNextDelaySlot()
