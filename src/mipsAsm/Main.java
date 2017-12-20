@@ -10,7 +10,7 @@ import mipsAsm.assembler.Assembler;
 import mipsAsm.assembler.util.BitStream;
 import mipsAsm.disassembler.Disassembler;
 import mipsAsm.gui.GUIMain;
-import mipsAsm.util.BinaryType;
+import mipsAsm.util.Config;
 
 public class Main
 {
@@ -19,11 +19,20 @@ public class Main
 	
 	public static void main(String[] args)
 	{
+		Config config;
+		try {
+			config = new Config(new File("config"));
+		} catch (IOException e) {
+			config = new Config();
+			System.out.println("Failed to read configuration file. Default configuration loaded.");
+		}
+		BitStream.init(config.formats);
+		
 		ArrayList<File> input = new ArrayList<>();
 		ArrayList<File> output = new ArrayList<>();
 		Task task = Task.ASSEMBLE;
 		boolean outputOption = false;
-		boolean endian = false;
+		boolean endian = config.endian.get();
 		boolean gui = false;
 		
 		for(String s : args)
@@ -69,10 +78,20 @@ public class Main
 		File[] outputFiles = new File[input.size()];
 		output.toArray(outputFiles);
 		
+		config.endian.set(endian);
+		
 		if(gui)
-			GUIMain.launchGUI(inputFiles, endian, args);
+			GUIMain.launchGUI(inputFiles, config, args);
 		else
 			launchCLI(task, endian, inputFiles, outputFiles);
+		try
+		{
+			config.saveConfig();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
 	}
 	
 	public static void printUsage()
@@ -125,23 +144,11 @@ public class Main
 		try
 		{
 			BitStream s = assembler.assemble(input);
-			PrintWriter p;
-			switch(BinaryType.getType(output)) {
-			case COE:
-				p = new PrintWriter(output);
-				p.print(s.getAsCOE().toString());
-				p.close();
-				break;
-			case HEX:
-				p = new PrintWriter(output);
-				p.print(s.getAsHexString().toString());
-				p.close();
-				break;
-			case BIN:
-				s.writeBinary(output);
-				break;
+			if(s != null)
+			{
+				s.write(output);
+				System.out.println("Assembly successful.");
 			}
-			System.out.println("Assembly successful.");
 		}
 		catch(FileNotFoundException e1)
 		{
@@ -167,7 +174,7 @@ public class Main
 				else
 					outputFile = output[i];
 				
-				int[] binary = BinaryType.read(input[i], endian);
+				int[] binary = BitStream.read(input[i], endian);
 				if(binary == null)
 				{
 					System.out.println("Wrong file format for binary.");

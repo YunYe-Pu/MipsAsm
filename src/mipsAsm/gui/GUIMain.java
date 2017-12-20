@@ -13,16 +13,17 @@ import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
-import mipsAsm.util.BinaryType;
+import mipsAsm.assembler.util.BitStream;
+import mipsAsm.util.Config;
+import mipsAsm.util.FileFormat;
 
 public class GUIMain extends Application
 {
 	public static GUIMain instance;
 	private Stage primaryStage;
 	private static File[] initialFile;
-	private static boolean initialEndian;
+	protected static Config config;
 
-	protected final SimpleBooleanProperty endianess;
 	protected final SimpleObjectProperty<Font> editorFont;
 	protected final SimpleBooleanProperty editDisplayed;
 	protected final BooleanExpression simDisplayed;
@@ -35,17 +36,20 @@ public class GUIMain extends Application
 	private static final ExtensionFilter[] sourceExtensions = {
 		new ExtensionFilter("Assembly Source File", "*.s")
 	};
-	private static final ExtensionFilter[] binaryExtensions = {
-		new ExtensionFilter("COE File", "*.coe"),
-		new ExtensionFilter("Hexadecimal Text File", "*.hex"),
-		new ExtensionFilter("All Files", "*.*")
-	};
+	private final ExtensionFilter[] binaryExtensions;
 	
 	public GUIMain()
 	{
 		instance = this;
 		this.fileChooser = new FileChooser();
-		this.endianess = new SimpleBooleanProperty();
+		
+		this.binaryExtensions = new ExtensionFilter[2 + config.formats.size()];
+		int i = 0;
+		for(FileFormat entry : config.formatList)
+			this.binaryExtensions[i++] = new ExtensionFilter(entry.description, "*" + entry.extension);
+		this.binaryExtensions[i++] = new ExtensionFilter("Hexadecimal Text File", "*.hex");
+		this.binaryExtensions[i++] = new ExtensionFilter("All Files", "*.*");
+
 		this.editorFont = new SimpleObjectProperty<Font>(Font.font("Courier New"));
 		this.editDisplayed = new SimpleBooleanProperty(true);
 		this.simDisplayed = this.editDisplayed.not();
@@ -71,14 +75,13 @@ public class GUIMain extends Application
 				this.editPane.openFile(f);
 		}
 		this.editPane.onEditorTabChange();
-		this.endianess.set(initialEndian);
 		primaryStage.show();
 	}
 	
-	public static void launchGUI(File[] initialFile, boolean initialEndian, String... args)
+	public static void launchGUI(File[] initialFile, Config config, String... args)
 	{
 		GUIMain.initialFile = initialFile;
-		GUIMain.initialEndian = initialEndian;
+		GUIMain.config = config;
 		Application.launch(args);
 	}
 	
@@ -86,9 +89,10 @@ public class GUIMain extends Application
 	{
 		this.fileChooser.setTitle("Save source:");
 		this.fileChooser.getExtensionFilters().setAll(sourceExtensions);
+		this.fileChooser.setInitialDirectory(config.initDirectory);
 		File f = this.fileChooser.showSaveDialog(this.primaryStage);
 		if(f != null)
-			this.fileChooser.setInitialDirectory(f.getParentFile());
+			config.initDirectory = f.getParentFile();
 		return f;
 	}
 
@@ -96,9 +100,10 @@ public class GUIMain extends Application
 	{
 		this.fileChooser.setTitle("Save binary:");
 		this.fileChooser.getExtensionFilters().setAll(binaryExtensions);
+		this.fileChooser.setInitialDirectory(config.initDirectory);
 		File f = this.fileChooser.showSaveDialog(this.primaryStage);
 		if(f != null)
-			this.fileChooser.setInitialDirectory(f.getParentFile());
+			config.initDirectory = f.getParentFile();
 		return f;
 	}
 	
@@ -106,9 +111,10 @@ public class GUIMain extends Application
 	{
 		this.fileChooser.setTitle("Open source:");
 		this.fileChooser.getExtensionFilters().setAll(sourceExtensions);
+		this.fileChooser.setInitialDirectory(config.initDirectory);
 		File f = this.fileChooser.showOpenDialog(this.primaryStage);
 		if(f != null)
-			this.fileChooser.setInitialDirectory(f.getParentFile());
+			config.initDirectory = f.getParentFile();
 		return f;
 	}
 
@@ -116,10 +122,11 @@ public class GUIMain extends Application
 	{
 		this.fileChooser.setTitle("Open sources:");
 		this.fileChooser.getExtensionFilters().setAll(sourceExtensions);
+		this.fileChooser.setInitialDirectory(config.initDirectory);
 		List<File> f = this.fileChooser.showOpenMultipleDialog(this.primaryStage);
 		if(f != null && f.size() > 0)
 		{
-			this.fileChooser.setInitialDirectory(f.get(0).getParentFile());
+			config.initDirectory = f.get(0).getParentFile();
 			return f;
 		}
 		else
@@ -130,9 +137,10 @@ public class GUIMain extends Application
 	{
 		this.fileChooser.setTitle("Open binary:");
 		this.fileChooser.getExtensionFilters().setAll(binaryExtensions);
+		this.fileChooser.setInitialDirectory(config.initDirectory);
 		File f = this.fileChooser.showOpenDialog(this.primaryStage);
 		if(f != null)
-			this.fileChooser.setInitialDirectory(f.getParentFile());
+			config.initDirectory = f.getParentFile();
 		return f;
 	}
 
@@ -140,10 +148,11 @@ public class GUIMain extends Application
 	{
 		this.fileChooser.setTitle("Open binaries:");
 		this.fileChooser.getExtensionFilters().setAll(binaryExtensions);
+		this.fileChooser.setInitialDirectory(config.initDirectory);
 		List<File> f = this.fileChooser.showOpenMultipleDialog(this.primaryStage);
 		if(f != null && f.size() > 0)
 		{
-			this.fileChooser.setInitialDirectory(f.get(0).getParentFile());
+			config.initDirectory = f.get(0).getParentFile();
 			return f;
 		}
 		else
@@ -159,7 +168,7 @@ public class GUIMain extends Application
 	{
 		try
 		{
-			int[] binary = BinaryType.read(file, this.endianess.get());
+			int[] binary = BitStream.read(file, config.endian.get());
 			if(binary == null) return false;
 			return this.startSimulation(binary);
 		}

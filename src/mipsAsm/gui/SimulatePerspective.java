@@ -26,9 +26,9 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
+import mipsAsm.assembler.util.BitStream;
 import mipsAsm.disassembler.Disassembler;
 import mipsAsm.simulator.Simulator;
-import mipsAsm.util.BinaryType;
 import mipsAsm.util.MenuHelper;
 
 public class SimulatePerspective extends BorderPane
@@ -242,7 +242,7 @@ public class SimulatePerspective extends BorderPane
 		if(f == null) return false;
 		try
 		{
-			int[] binary = BinaryType.read(f, GUIMain.instance.endianess.get());
+			int[] binary = BitStream.read(f, GUIMain.config.endian.get());
 			if(binary == null)
 			{
 				disassemblePrompt.showAndWait();

@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,7 +29,6 @@ import javafx.scene.layout.Pane;
 import mipsAsm.assembler.Assembler;
 import mipsAsm.assembler.util.BitStream;
 import mipsAsm.disassembler.Disassembler;
-import mipsAsm.util.BinaryType;
 import mipsAsm.util.MenuHelper;
 
 public class EditPerspective extends BorderPane
@@ -81,8 +79,8 @@ public class EditPerspective extends BorderPane
 		this.console.setLayoutX(0);
 		this.console.layoutYProperty().bind(p1.heightProperty().multiply(0.8f));
 		
-		GUIMain.instance.endianess.addListener((e, oldVal, newVal) -> this.assembler.setEndianess(newVal));
-		GUIMain.instance.endianess.addListener((e, oldVal, newVal) -> this.menuItems[3][0].setText(newVal? "Endian:big": "Endian:little"));
+		GUIMain.config.endian.addListener((e, oldVal, newVal) -> this.assembler.setEndianess(newVal));
+		GUIMain.config.endian.addListener((e, oldVal, newVal) -> this.menuItems[3][0].setText(newVal? "Endian:big": "Endian:little"));
 		
 		this.setOnDragOver(e ->
 		{
@@ -163,25 +161,8 @@ public class EditPerspective extends BorderPane
 		try
 		{
 			File asmOutputFile = GUIMain.instance.promptSaveBinary();
-			PrintWriter p;
 			if(asmOutputFile != null)
-			{
-				switch(BinaryType.getType(asmOutputFile)) {
-				case COE:
-					p = new PrintWriter(asmOutputFile);
-					p.print(asmResult.getAsCOE());
-					p.close();
-					break;
-				case HEX:
-					p = new PrintWriter(asmOutputFile);
-					p.print(asmResult.getAsHexString());
-					p.close();
-					break;
-				case BIN:
-					asmResult.writeBinary(asmOutputFile);
-					break;
-				}
-			}
+				asmResult.write(asmOutputFile);
 			return true;
 		}
 		catch(IOException e)
@@ -318,7 +299,7 @@ public class EditPerspective extends BorderPane
 		if(f == null) return false;
 		try
 		{
-			int[] data = BinaryType.read(f, GUIMain.instance.endianess.get());
+			int[] data = BitStream.read(f, GUIMain.config.endian.get());
 			if(data == null)
 			{
 				disassemblePrompt.showAndWait();
@@ -359,7 +340,7 @@ public class EditPerspective extends BorderPane
 	
 	private void onEndianessSelect()
 	{
-		GUIMain.instance.endianess.set(!GUIMain.instance.endianess.get());
+		GUIMain.config.endian.set(!GUIMain.config.endian.get());
 	}
 	
 	protected boolean openFile(File file)

@@ -1,14 +1,26 @@
 package mipsAsm.assembler.util;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+
+import mipsAsm.util.BinaryIOFunction;
+import mipsAsm.util.FileFormat;
 
 public class BitStream
 {
 	private int[] data;
 	private int writeIndex;
 	private final boolean endianess;
+	
+	private static final HashMap<String, BinaryIOFunction> ioFunction = new HashMap<>();
+	
+	public static void init(HashMap<String, FileFormat> map)
+	{
+		ioFunction.putAll(map);
+		ioFunction.put(".hex", BinaryIOFunction.hex);
+	}
 	
 	public BitStream(int size, boolean endianess)
 	{
@@ -26,84 +38,27 @@ public class BitStream
 	{
 		return this.data;
 	}
-	
-	public StringBuilder getAsHexString()
+
+	public void write(File target) throws IOException
 	{
-		StringBuilder buffer = new StringBuilder(this.data.length * 8);
-		if(this.endianess)//big-endian, output as normal
-		{
-			int i, j;
-			for(i = 0; i < data.length; i++)
-			{
-				String s = Integer.toHexString(data[i]);
-				for(j = s.length(); j < 8; j++)
-					buffer.append('0');
-				buffer.append(s);
-			}
-		}
-		else//little-endian, output least-significant byte first
-		{
-			int i, j, val;
-			String s;
-			for(i = 0; i < data.length; i++)
-			{
-				val = data[i];
-				for(j = 0; j < 4; j++)
-				{
-					s = Integer.toHexString(val & 0xff);
-					if(s.length() == 1)
-						buffer.append('0');
-					buffer.append(s);
-					val >>= 8;
-				}
-			}
-		}
-		return buffer;
+		String extension = target.getName();
+		int i = extension.lastIndexOf('.');
+		if(i >= 0)
+			extension = extension.substring(i);
+		ioFunction.getOrDefault(extension, BinaryIOFunction.binary).write(target, this.data, this.endianess);
 	}
 	
-	private static final String COE_PREFIX = "memory_initialization_radix=16;\nmemory_initialization_vector=\n";
-	public StringBuilder getAsCOE()
+	public static int[] read(File target, boolean endian) throws IOException
 	{
-		StringBuilder buffer = new StringBuilder(COE_PREFIX.length() + this.data.length * 10);
-		String strAppend = COE_PREFIX;
-		int i, j;
-		for(i = 0; i < data.length; i++)
-		{
-			buffer.append(strAppend);
-			String s = Integer.toHexString(data[i]);
-			for(j = s.length(); j < 8; j++)
-				buffer.append('0');
-			buffer.append(s);
-			strAppend = ",\n";
-		}
-		buffer.append(";\n");
-		return buffer;
+		String extension = target.getName();
+		int i = extension.lastIndexOf('.');
+		if(i >= 0)
+			extension = extension.substring(i);
+		List<Integer> list = ioFunction.getOrDefault(extension, BinaryIOFunction.binary).read(target, endian);
+		int[] ret = new int[list.size()];
+		for(i = 0; i < ret.length; i++)
+			ret[i] = list.get(i);
+		return ret;
 	}
 	
-	public void writeBinary(File target) throws IOException
-	{
-		try(FileOutputStream stream = new FileOutputStream(target))
-		{
-			if(this.endianess)
-			{
-				for(int i : this.data)
-				{
-					stream.write((i >> 24) & 0xff);
-					stream.write((i >> 16) & 0xff);
-					stream.write((i >>  8) & 0xff);
-					stream.write(i & 0xff);
-				}
-			}
-			else
-			{
-				for(int i : this.data)
-				{
-					stream.write(i & 0xff);
-					stream.write((i >>  8) & 0xff);
-					stream.write((i >> 16) & 0xff);
-					stream.write((i >> 24) & 0xff);
-				}
-			}
-		}
-	}
 }

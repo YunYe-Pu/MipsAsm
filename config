@@ -1,0 +1,35 @@
+{
+	"initDirectory" : "C:\\Users\\YunYe\\Documents\\Xilinx\\SoC\\Common\\asm\\bootstrap",
+	"endian" : false,
+	"formats" : [{
+		"description" : "COE File",
+		"extension" : ".coe",
+		"prefix" : "memory_initialization_radix=16;\nmemory_initialization_vector=\n",
+		"separator" : ",\n",
+		"suffix" : ";\n",
+		"wordPattern" : {
+			"regex" : "[0-9A-Fa-f]{8}[,;]",
+			"opt" : 0,
+			"offset" : 0
+		},
+		"prefixPattern" : [{
+			"regex" : "memory_initialization_radix=16;",
+			"opt" : 2
+		},{
+			"regex" : "memory_initialization_vector=",
+			"opt" : 2
+		}]
+	},{
+		"description" : "Memory initialization File",
+		"extension" : ".mif",
+		"prefix" : "",
+		"separator" : "\n",
+		"suffix" : "\n",
+		"wordPattern" : {
+			"regex" : "[0-9A-Fa-f]{8}",
+			"opt" : 0,
+			"offset" : 0
+		},
+		"prefixPattern" : []
+	}]
+}
