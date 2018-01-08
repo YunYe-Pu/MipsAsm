@@ -76,63 +76,63 @@ public class Config
 		//Format the json text
 		try(PrintWriter output = new PrintWriter(this.configFile))
 		{
-			int indent = 0;
-			boolean quotation = false;
-			char prevChar = 0;
-			StringBuilder indentTypes = new StringBuilder(10);
-			for(char c : jsonText)
-			{
-				if(quotation == false)
-				{
-					switch(c) {
-					case '{':
-						indent++;
-						output.println("{");
-						printIndent(indent, output);
-						indentTypes.append('{');
-						break;
-					case '}':
-						indent--;
-						output.println();
-						printIndent(indent, output);
-						output.print("}");
-						indentTypes.setLength(indentTypes.length() - 1);
-						break;
-					case ':':
-						output.print(" : ");
-						break;
-					case ',':
-						output.print(",");
-						if(indentTypes.charAt(indentTypes.length() - 1) == '{')
-						{
-							output.println();
-							printIndent(indent, output);
-						}
-						break;
-					case '[':
-						output.print('[');
-						indentTypes.append('[');
-						break;
-					case ']':
-						output.print(']');
-						indentTypes.setLength(indentTypes.length() - 1);
-						break;
-					case '\"':
-						quotation = true;
-					default:
-						output.print(c);
-					}
-				}
-				else
-				{
-					if(prevChar != '\\' && c == '\"')
-						quotation = false;
-					output.print(c);
-				}
-				prevChar = c;
-			}
+			printConfig(0, 0, jsonText, output, true);
 			output.println();
 		}
+	}
+	
+	private int printConfig(int indent, int pos, char[] buf, PrintWriter output, boolean commaNewline) throws IOException
+	{
+		boolean quotation = false;
+		char prevChar = 0, c = 0;
+		while(pos < buf.length)
+		{
+			prevChar = c;
+			c = buf[pos++];
+			if(quotation)
+			{
+				if(prevChar != '\\' && c == '\"')
+					quotation = false;
+				output.print(c);
+				continue;
+			}
+			
+			switch(c) {
+			case '{':
+				output.println("{");
+				printIndent(indent + 1, output);
+				pos = printConfig(indent + 1, pos, buf, output, true);
+				output.println();
+				printIndent(indent, output);
+				output.print("}");
+				break;
+			case '}':
+				return pos;
+			case ':':
+				output.print(" : ");
+				break;
+			case ',':
+				output.print(",");
+				if(commaNewline)
+				{
+					output.println();
+					printIndent(indent, output);
+				}
+				break;
+			case '[':
+				output.print('[');
+				pos = printConfig(indent, pos, buf, output, false);
+				output.print(']');
+				break;
+			case ']':
+				return pos;
+			case '\"':
+				quotation = true;
+			default:
+				output.print(c);
+			}
+		}
+		return pos;
 	}
 	
 	private static void printIndent(int indent, PrintWriter output)
